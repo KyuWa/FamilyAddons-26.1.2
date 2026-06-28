@@ -1,0 +1,23 @@
+{
+  "required": true,
+  "package": "org.kyowa.familyaddons.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "EntityRefMixin"
+  ],
+  "client": [
+    "WorldRendererMixin",
+    "SignEditMixin",
+    "EntityOutlineMixin",
+    "EntityCaptureMixin",
+    "PlayerDisguiseMixin",
+    "HotbarScrollMixin",
+    "ServerTickPacketMixin",
+    "CameraMixin",
+    "FreelookEntityMixin",
+    "PearlInGameHudMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
