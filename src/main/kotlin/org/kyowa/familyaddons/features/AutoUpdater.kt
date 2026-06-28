@@ -27,10 +27,7 @@ import java.util.concurrent.CompletableFuture
 
 object AutoUpdater {
 
-    private val GITHUB_REPO = if (FamilyAddons.MC_VERSION == "1.21.11")
-        "KyuWa/FamilyAddons-1.21.11"
-    else
-        "KyuWa/FamilyAddons-1.21.10"
+    private const val GITHUB_REPO = "KyuWa/FamilyAddons-26.1.2"
 
     private val http = HttpClient.newBuilder().followRedirects(java.net.http.HttpClient.Redirect.ALWAYS).build()
 
