@@ -44,12 +44,12 @@ public abstract class CameraMixin {
     }
 
     @ModifyArg(
-            method = "extractRenderState(Lnet/minecraft/client/renderer/state/level/CameraRenderState;F)V",
+            method = "alignWithEntity(F)V",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/Camera;getMaxZoom(F)F"
             ),
-            require = 0
+            require = 1
     )
     private float familyaddons$customDistance(float original) {
         Float custom = CameraHelper.getCustomDistance();
@@ -66,13 +66,13 @@ public abstract class CameraMixin {
      * computes the camera offset.
      */
     @Inject(
-            method = "extractRenderState(Lnet/minecraft/client/renderer/state/level/CameraRenderState;F)V",
+            method = "alignWithEntity(F)V",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/Camera;getMaxZoom(F)F",
                     shift = At.Shift.BEFORE
             ),
-            require = 0
+            require = 1
     )
     private void familyaddons$applyFreelookBeforeMove(CallbackInfo ci) {
         if (!CameraHelper.freelookActive) return;
