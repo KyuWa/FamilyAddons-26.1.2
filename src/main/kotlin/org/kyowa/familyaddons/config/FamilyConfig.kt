@@ -30,16 +30,8 @@ class FamilyConfig : Config() {
     var mining = MiningConfig()
 
     @Expose @JvmField
-    @Category(name = "Kuudra", desc = "Kuudra features")
+    @Category(name = "Kuudra", desc = "All Kuudra features")
     var kuudra = KuudraConfig()
-
-    @Expose @JvmField
-    @Category(name = "Solo Kuudra", desc = "Solo Kuudra features (Gorilla Tactics, Pearl Timer)")
-    var soloKuudra = SoloKuudraConfig()
-
-    @Expose @JvmField
-    @Category(name = "Kuudra Crate & Pearl", desc = "Crate hitbox + pearl-throw waypoints")
-    var hidden = HiddenConfig()
 
     @Expose @JvmField
     @Category(name = "Crimson Isle", desc = "Crimson Isle features")

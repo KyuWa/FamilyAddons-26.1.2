@@ -68,7 +68,7 @@ object KuudraGiants {
         val cfg = org.kyowa.familyaddons.config.FamilyConfigManager.config
         // Public feature — anyone can enable.
         if (cfg.kuudra.supplyWaypointsEnabled) return true
-        if (cfg.hidden.crateWaypointsEnabled) return true
+        if (cfg.kuudra.crateWaypointsEnabled) return true
         return false
     }
 

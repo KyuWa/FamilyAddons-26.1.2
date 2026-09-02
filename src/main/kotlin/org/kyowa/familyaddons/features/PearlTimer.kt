@@ -98,18 +98,18 @@ object PearlTimer {
     const val PREVIEW_TEXT_TICKS_2 = "§dPearl 2 §f17t"
 
     fun previewLine1(): String =
-        if (FamilyConfigManager.config.soloKuudra.pearlDisplayUnit == 1) PREVIEW_TEXT_TICKS_1
+        if (FamilyConfigManager.config.kuudra.pearlDisplayUnit == 1) PREVIEW_TEXT_TICKS_1
         else PREVIEW_TEXT_SECONDS_1
 
     fun previewLine2(): String =
-        if (FamilyConfigManager.config.soloKuudra.pearlDisplayUnit == 1) PREVIEW_TEXT_TICKS_2
+        if (FamilyConfigManager.config.kuudra.pearlDisplayUnit == 1) PREVIEW_TEXT_TICKS_2
         else PREVIEW_TEXT_SECONDS_2
 
-    fun getScale(): Float = FamilyConfigManager.config.soloKuudra.pearlTimerHudScale
+    fun getScale(): Float = FamilyConfigManager.config.kuudra.pearlTimerHudScale
         .toFloatOrNull()?.coerceAtLeast(0.5f) ?: 1.0f
 
     fun resolvePos(sw: Int, sh: Int, scale: Float, textWidth: Int): Pair<Int, Int> {
-        val cfg = FamilyConfigManager.config.soloKuudra
+        val cfg = FamilyConfigManager.config.kuudra
         return if (cfg.pearlTimerHudX == -1 || cfg.pearlTimerHudY == -1) {
             val x = ((sw - textWidth * scale) / 2f).toInt()
             val y = (sh / 2f + 60f).toInt()
@@ -306,7 +306,7 @@ object PearlTimer {
         }
 
         UseItemCallback.EVENT.register { player, _, hand ->
-            if (!FamilyConfigManager.config.soloKuudra.pearlTimer) return@register InteractionResult.PASS
+            if (!FamilyConfigManager.config.kuudra.pearlTimer) return@register InteractionResult.PASS
             val client = Minecraft.getInstance()
             if (player != client.player) return@register InteractionResult.PASS
             if (hand != InteractionHand.MAIN_HAND) return@register InteractionResult.PASS
@@ -336,14 +336,14 @@ object PearlTimer {
     }
 
     private fun renderHud(context: GuiGraphicsExtractor) {
-            if (!FamilyConfigManager.config.soloKuudra.pearlTimer) return
+            if (!FamilyConfigManager.config.kuudra.pearlTimer) return
             if (pearls.isEmpty()) return
 
             val client = Minecraft.getInstance()
             val tr = client.font
             val scale = getScale()
             val fractional = ServerTickTracker.fractionalTicksSinceLastTick()
-            val unit = FamilyConfigManager.config.soloKuudra.pearlDisplayUnit
+            val unit = FamilyConfigManager.config.kuudra.pearlDisplayUnit
 
             // Pre-build all lines so we can size the box & center properly.
             val lines = ArrayList<String>(pearls.size)

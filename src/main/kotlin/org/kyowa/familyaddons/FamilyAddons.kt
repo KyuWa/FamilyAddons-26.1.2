@@ -17,7 +17,7 @@ val COLOR_CODE_REGEX = Regex("§.")
 object FamilyAddons : ClientModInitializer {
 
     val LOGGER = LoggerFactory.getLogger("FamilyAddons")
-    const val VERSION = "1.0.0"
+    const val VERSION = "1.1.0"
     const val MC_VERSION = "26.1.2"
 
     private var hudEditorMouseWasDown = false
@@ -73,12 +73,15 @@ object FamilyAddons : ClientModInitializer {
         AutoRequeue.register()
         InfernalKeyTracker.register()
         DungeonDtTitle.register()
+        DungeonHighlight.register()
         KuudraOccupancy.register()
         PileWaypoints.register()
         SupplyWaypoints.register()
         KuudraGiants.register()
         KuudraCrateWaypoints.register()
         PearlWaypoints.register()
+        KuudraDirection.register()
+        KuudraStunWaypoint.register()
 
         // Bestiary
         BestiaryTracker.register()

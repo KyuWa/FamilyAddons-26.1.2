@@ -76,7 +76,7 @@ object PearlWaypoints {
     // ── Public API ─────────────────────────────────────────────────────
 
     fun hasWaypoints(): Boolean {
-        if (!FamilyConfigManager.config.hidden.pearlWaypointsEnabled) return false
+        if (!FamilyConfigManager.config.kuudra.pearlWaypointsEnabled) return false
         if (!AutoRequeue.isInKuudra()) return false
         if (!KuudraPhase.isInP1()) return false
         return true
@@ -119,7 +119,7 @@ object PearlWaypoints {
         }
 
         ClientTickEvents.END_CLIENT_TICK.register { client ->
-            Prio.useNewPrio = FamilyConfigManager.config.hidden.pearlNewPrio
+            Prio.useNewPrio = FamilyConfigManager.config.kuudra.pearlNewPrio
 
             if (!KuudraPhase.isInP1()) {
                 if (grabbing) clearGrab()
@@ -176,7 +176,7 @@ object PearlWaypoints {
         val kuudra = AutoRequeue.kuudraTierIndex()
         if (kuudra == 0) return 6000L
         val tierIdx = (kuudra - 1).coerceIn(0, 4)
-        val taliIdx = FamilyConfigManager.config.hidden.pearlTalismanTier.coerceIn(0, 3)
+        val taliIdx = FamilyConfigManager.config.kuudra.pearlTalismanTier.coerceIn(0, 3)
         return pickTimings[taliIdx][tierIdx] * 50L
     }
 
@@ -186,7 +186,7 @@ object PearlWaypoints {
      */
     private fun shouldFireNowSound(): Boolean {
         if (!grabbing || grabStartTick < 0) return false
-        val cfg = FamilyConfigManager.config.hidden
+        val cfg = FamilyConfigManager.config.kuudra
         if (!cfg.pearlNowSound) return false
 
         val mc = Minecraft.getInstance()
@@ -209,7 +209,7 @@ object PearlWaypoints {
     private fun playNowSound() {
         val mc = Minecraft.getInstance()
         val player = mc.player ?: return
-        val volume = FamilyConfigManager.config.hidden.pearlNowSoundVolume.coerceIn(0f, 2f)
+        val volume = FamilyConfigManager.config.kuudra.pearlNowSoundVolume.coerceIn(0f, 2f)
         if (volume <= 0f) return
         // Use a high-pitched note block for clear, distinguishable feedback.
         player.playSound(SoundEvents.NOTE_BLOCK_PLING.value(), volume, 1.8f)
@@ -217,7 +217,7 @@ object PearlWaypoints {
 
     private fun timerString(flightTimeMs: Long, isDoublePearl: Boolean): String? {
         if (!grabbing || grabStartTick < 0) return null
-        val cfg = FamilyConfigManager.config.hidden
+        val cfg = FamilyConfigManager.config.kuudra
 
         val ticksSinceGrab = (tickCount - grabStartTick).coerceAtLeast(0)
         val flightTicks = (flightTimeMs / 50L).toInt()
@@ -253,7 +253,7 @@ object PearlWaypoints {
     }
 
     private fun yOffsetFor(pre: Pre): Double {
-        val cfg = FamilyConfigManager.config.hidden
+        val cfg = FamilyConfigManager.config.kuudra
         if (!cfg.pearlOffsetsEnabled) return 0.0
         return when (pre) {
             Pre.SHOP     -> cfg.pearlShopOff.toDouble()
@@ -284,7 +284,7 @@ object PearlWaypoints {
      * missing in chat.
      */
     private fun availableFallbackPlaces(): List<Place> {
-        val cfg = FamilyConfigManager.config.hidden
+        val cfg = FamilyConfigManager.config.kuudra
         return Place.values().filter { p ->
             p !in KuudraOccupancy.occupiedPlaces &&
                     (!cfg.pearlHideOnMissing || p !in MissingSupplies.missing)
@@ -295,7 +295,7 @@ object PearlWaypoints {
 
     fun onWorldRender(matrices: PoseStack, camera: Camera) {
         if (!hasWaypoints()) return
-        val cfg = FamilyConfigManager.config.hidden
+        val cfg = FamilyConfigManager.config.kuudra
         val mc = Minecraft.getInstance()
         val player = mc.player ?: return
         val immediate = mc.renderBuffers().bufferSource() ?: return
@@ -331,7 +331,7 @@ object PearlWaypoints {
             val sol = PearlCalculator.solvePearl(false, eye, spawnPos, adjusted)
             if (sol != null) {
                 drawWaypoint(matrices, immediate, sol.aimPoint, color, cfg.pearlSize.toDouble(), cfg.pearlShape)
-                if (cfg.pearlTimer) {
+                if (cfg.pearlWaypointTimer) {
                     val label = timerString(sol.flightTimeMs, isDoublePearl = false)
                         ?: "§7${sol.flightTimeMs}ms"
                     drawLabel(matrices, immediate, sol.aimPoint, label, cfg.pearlTimerScale, cfg.pearlTimerPos)
@@ -345,7 +345,7 @@ object PearlWaypoints {
                 if (place == mainPlace) continue   // already known to be occupied
                 val sol = PearlCalculator.solvePearl(false, eye, spawnPos, place.location) ?: continue
                 drawWaypoint(matrices, immediate, sol.aimPoint, color, cfg.pearlSize.toDouble(), cfg.pearlShape)
-                if (cfg.pearlTimer) {
+                if (cfg.pearlWaypointTimer) {
                     val label = timerString(sol.flightTimeMs, isDoublePearl = false)
                         ?: "§7${sol.flightTimeMs}ms"
                     drawLabel(matrices, immediate, sol.aimPoint, label, cfg.pearlTimerScale, cfg.pearlTimerPos)
@@ -355,7 +355,7 @@ object PearlWaypoints {
 
         // ── Sky marker — restricted to PawsUp's 3 cases, only when main path is active ──
         if (cfg.pearlSkyPearls && !mainHidden && mainPlace != null && supplyDest != null
-            && shouldRenderSkyMarker(mainPlace, pre, FamilyConfigManager.config.hidden.pearlNewPrio)) {
+            && shouldRenderSkyMarker(mainPlace, pre, FamilyConfigManager.config.kuudra.pearlNewPrio)) {
             val adjusted = Vec3(supplyDest.x, supplyDest.y + yOffsetFor(pre), supplyDest.z)
             val sky = PearlCalculator.solvePearl(true, eye, spawnPos, adjusted)
             if (sky != null) {
@@ -563,7 +563,7 @@ object PearlWaypoints {
 
     fun debugDump(): String {
         val sb = StringBuilder()
-        val cfg = FamilyConfigManager.config.hidden
+        val cfg = FamilyConfigManager.config.kuudra
         val player = Minecraft.getInstance().player
 
         sb.append("§6[FA Pearl] §7Flags: ")

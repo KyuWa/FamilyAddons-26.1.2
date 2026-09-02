@@ -17,6 +17,7 @@ import org.joml.Vector4f;
 import org.kyowa.familyaddons.features.CorpseESP;
 import org.kyowa.familyaddons.features.EntityHighlight;
 import org.kyowa.familyaddons.features.KuudraCrateWaypoints;
+import org.kyowa.familyaddons.features.KuudraStunWaypoint;
 import org.kyowa.familyaddons.features.NpcLocations;
 import org.kyowa.familyaddons.features.Parkour;
 import org.kyowa.familyaddons.features.PearlWaypoints;
@@ -57,6 +58,7 @@ public class WorldRendererMixin {
                 !EntityHighlight.INSTANCE.hasHighlighted() &&
                 !WorldScanner.INSTANCE.hasWaypoints() &&
                 !KuudraCrateWaypoints.INSTANCE.hasCrates() &&
+                !KuudraStunWaypoint.INSTANCE.hasWaypoint() &&
                 !PearlWaypoints.INSTANCE.hasWaypoints() &&
                 !PileWaypoints.INSTANCE.hasBeams() &&
                 !SupplyWaypoints.INSTANCE.hasBeams()) return;
@@ -76,6 +78,7 @@ public class WorldRendererMixin {
         EntityHighlight.INSTANCE.onWorldRender(fa_matrices, consumers, cam);
         WorldScanner.INSTANCE.onWorldRender(fa_matrices, consumers, cam);
         KuudraCrateWaypoints.INSTANCE.onWorldRender(fa_matrices, camera);
+        KuudraStunWaypoint.INSTANCE.onWorldRender(fa_matrices, camera);
         PearlWaypoints.INSTANCE.onWorldRender(fa_matrices, camera);
         PileWaypoints.INSTANCE.onWorldRender(fa_matrices, camera);
         SupplyWaypoints.INSTANCE.onWorldRender(fa_matrices, camera);

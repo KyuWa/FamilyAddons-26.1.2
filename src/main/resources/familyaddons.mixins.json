@@ -13,6 +13,7 @@
     "PlayerDisguiseMixin",
     "HotbarScrollMixin",
     "ServerTickPacketMixin",
+    "PlayerPositionPacketMixin",
     "CameraMixin",
     "FreelookEntityMixin",
     "PearlInGameHudMixin"

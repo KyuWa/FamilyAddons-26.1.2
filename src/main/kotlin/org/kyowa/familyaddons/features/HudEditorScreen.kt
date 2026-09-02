@@ -185,12 +185,12 @@ class HudEditorScreen : Screen(Component.literal("FA HUD Editor")) {
         val gtScale = GorillaTactics.getScale()
         val gtPlain = GorillaTactics.PREVIEW_TEXT.replace(COLOR_CODE_REGEX, "")
         val gtW = tr.width(gtPlain)
-        val gtX = if (FamilyConfigManager.config.utilities.gorillaHudX == -1)
+        val gtX = if (FamilyConfigManager.config.kuudra.gorillaHudX == -1)
             ((sw - gtW * gtScale) / 2f).toInt()
-        else FamilyConfigManager.config.utilities.gorillaHudX
-        val gtY = if (FamilyConfigManager.config.utilities.gorillaHudY == -1)
+        else FamilyConfigManager.config.kuudra.gorillaHudX
+        val gtY = if (FamilyConfigManager.config.kuudra.gorillaHudY == -1)
             (sh / 2f + 40f).toInt()
-        else FamilyConfigManager.config.utilities.gorillaHudY
+        else FamilyConfigManager.config.kuudra.gorillaHudY
 
         elements.add(HudElement(
             id = "gorillaTactics", label = "Gorilla Tactics Timer",
@@ -199,12 +199,38 @@ class HudEditorScreen : Screen(Component.literal("FA HUD Editor")) {
             scale = gtScale,
             canScale = true,
             onSave = { elem ->
-                FamilyConfigManager.config.utilities.gorillaHudX = elem.x
-                FamilyConfigManager.config.utilities.gorillaHudY = elem.y
-                FamilyConfigManager.config.utilities.gorillaHudScale = "%.1f".format(elem.scale)
+                FamilyConfigManager.config.kuudra.gorillaHudX = elem.x
+                FamilyConfigManager.config.kuudra.gorillaHudY = elem.y
+                FamilyConfigManager.config.kuudra.gorillaHudScale = "%.1f".format(elem.scale)
             },
             renderContent = { ctx, _ ->
                 ctx.text(tr, Component.literal(GorillaTactics.PREVIEW_TEXT), 0, 0, 0xFFFFFFFF.toInt(), true)
+            }
+        ))
+
+        // Kuudra Direction
+        val dirScale = KuudraDirection.getScale()
+        val dirW = tr.width(KuudraDirection.PREVIEW_TEXT)
+        val dirX = if (FamilyConfigManager.config.kuudra.directionHudX == -1)
+            ((sw - dirW * dirScale) / 2f).toInt()
+        else FamilyConfigManager.config.kuudra.directionHudX
+        val dirY = if (FamilyConfigManager.config.kuudra.directionHudY == -1)
+            (sh * 0.41f).toInt()
+        else FamilyConfigManager.config.kuudra.directionHudY
+
+        elements.add(HudElement(
+            id = "kuudraDirection", label = "Kuudra Direction",
+            x = dirX, y = dirY,
+            w = dirW + 2, h = 10,
+            scale = dirScale,
+            canScale = true,
+            onSave = { elem ->
+                FamilyConfigManager.config.kuudra.directionHudX = elem.x
+                FamilyConfigManager.config.kuudra.directionHudY = elem.y
+                FamilyConfigManager.config.kuudra.directionScale = "%.1f".format(elem.scale)
+            },
+            renderContent = { ctx, _ ->
+                ctx.text(tr, Component.literal(KuudraDirection.PREVIEW_TEXT), 0, 0, 0xFF00AA00.toInt(), true)
             }
         ))
 

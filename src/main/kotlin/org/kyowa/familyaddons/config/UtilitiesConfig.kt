@@ -31,15 +31,6 @@ class UtilitiesConfig {
     var lockHotbarScroll = false
 
     @Expose @JvmField
-    @ConfigOption(name = "Tac Insert Timer", desc = "Show a 3-second countdown when the Tactical Insertion ability is used.")
-    @ConfigEditorBoolean
-    var gorillaTacticsTimer = false
-
-    @Expose @JvmField var gorillaHudX = -1
-    @Expose @JvmField var gorillaHudY = -1
-    @Expose @JvmField var gorillaHudScale = "1.5"
-
-    @Expose @JvmField
     @ConfigOption(name = "Highlight Rescan Interval", desc = "How often (in ticks) to scan for mobs to highlight. Lower = faster detection, higher = better performance. Default 20 (1 second).")
     @ConfigEditorSlider(minValue = 1f, maxValue = 20f, minStep = 1f)
     var highlightRescanInterval = 20f

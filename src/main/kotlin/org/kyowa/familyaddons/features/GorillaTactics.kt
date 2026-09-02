@@ -25,11 +25,11 @@ object GorillaTactics {
 
     const val PREVIEW_TEXT = "§6Gorilla Tactics §f2.75s"
 
-    fun getScale() = FamilyConfigManager.config.utilities.gorillaHudScale
+    fun getScale() = FamilyConfigManager.config.kuudra.gorillaHudScale
         .toFloatOrNull()?.coerceAtLeast(0.5f) ?: 1.5f
 
     fun resolvePos(sw: Int, sh: Int, scale: Float, textWidth: Int): Pair<Int, Int> {
-        val cfg = FamilyConfigManager.config.utilities
+        val cfg = FamilyConfigManager.config.kuudra
         return if (cfg.gorillaHudX == -1 || cfg.gorillaHudY == -1) {
             val x = ((sw - textWidth * scale) / 2f).toInt()
             val y = (sh / 2f + 40f).toInt()
@@ -81,7 +81,7 @@ object GorillaTactics {
 
         // Right-click always starts/restarts the timer, regardless of current state.
         UseItemCallback.EVENT.register { player, _, hand ->
-            if (!FamilyConfigManager.config.utilities.gorillaTacticsTimer) {
+            if (!FamilyConfigManager.config.kuudra.gorillaTacticsTimer) {
                 return@register InteractionResult.PASS
             }
             val client = Minecraft.getInstance()
@@ -97,7 +97,7 @@ object GorillaTactics {
         }
 
         HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("familyaddons", "hud_gorillatactics_1"), HudElement { context, _ ->
-            if (!FamilyConfigManager.config.utilities.gorillaTacticsTimer) return@HudElement
+            if (!FamilyConfigManager.config.kuudra.gorillaTacticsTimer) return@HudElement
             val ticks = remainingTicks
             if (ticks <= 0) return@HudElement
 

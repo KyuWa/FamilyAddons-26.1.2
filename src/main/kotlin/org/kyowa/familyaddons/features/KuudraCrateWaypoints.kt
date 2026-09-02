@@ -49,7 +49,7 @@ object KuudraCrateWaypoints {
 
     private const val CIRCLE_SEGMENTS = 48
 
-    private fun cfg() = FamilyConfigManager.config.hidden
+    private fun cfg() = FamilyConfigManager.config.kuudra
     private fun isInKuudra() = AutoRequeue.isInKuudra()
 
     fun hasCrates(): Boolean {
