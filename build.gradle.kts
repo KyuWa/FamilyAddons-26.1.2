@@ -3,7 +3,7 @@ plugins {
     id("net.fabricmc.fabric-loom") version "1.17-SNAPSHOT"
 }
 
-version = "1.0.0"
+version = "1.1.1"
 group = "org.kyowa"
 
 base {

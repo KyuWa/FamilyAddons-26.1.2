@@ -32,9 +32,24 @@ class BestiaryConfig {
     var zoneHighlightEnabled = false
 
     @Expose @JvmField
-    @ConfigOption(name = "Bestiary Zone", desc = "Select the zone to highlight non-maxed mobs for.")
-    @ConfigEditorDropdown(values = ["None", "Island", "Hub", "The Farming Lands", "The Garden", "Spider's Den", "The End", "Crimson Isle", "Deep Caverns", "Dwarven Mines", "Crystal Hollows", "The Park", "Galatea", "Spooky Festival", "The Catacombs", "Fishing", "Mythological Creatures", "Jerry", "Kuudra"])
+    @ConfigOption(name = "Bestiary Zone", desc = "Select the zone to highlight bestiary mobs for. Fishing includes all fishing sub-zones (Lava, Backwater Bayou, festivals, Winter).")
+    @ConfigEditorDropdown(values = ["None", "Island", "Hub", "The Farming Lands", "The Garden", "Spider's Den", "The End", "Crimson Isle", "Deep Caverns", "Dwarven Mines", "Crystal Hollows", "The Park", "Moonglade Marsh", "Spooky Festival", "The Catacombs", "Fishing", "Mythological Creatures", "Jerry", "Kuudra", "Torrhus Canyon", "Lotus Atoll", "Critter Safari"])
     var bestiaryZone = 0  // 0 = None
+
+    @Expose @JvmField
+    @ConfigOption(name = "Hide Maxed Mobs", desc = "On: maxed bestiary mobs are not highlighted. Off: highlight every mob in the zone, maxed or not.")
+    @ConfigEditorBoolean
+    var hideMaxedMobs = true
+
+    @Expose @JvmField
+    @ConfigOption(name = "Highlight Color", desc = "Color of the bestiary highlight (independent of the Highlight category's color).")
+    @ConfigEditorColour
+    var bestiaryColor = "0:255:255:170:0"
+
+    @Expose @JvmField
+    @ConfigOption(name = "Drawing Style", desc = "How to draw the bestiary highlight.")
+    @ConfigEditorDropdown(values = ["AABB", "Outline"])
+    var bestiaryDrawingStyle = 0
 
     // ── Persisted total kills per mob name ────────────────────────────
     @Expose @JvmField

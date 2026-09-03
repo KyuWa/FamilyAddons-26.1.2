@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
 import org.kyowa.familyaddons.config.FamilyConfigManager
+import org.kyowa.familyaddons.features.BestiaryZoneHighlight
 import org.kyowa.familyaddons.features.NpcLocations
 import org.kyowa.familyaddons.features.Parkour
 import org.kyowa.familyaddons.features.PartyRepCheck
@@ -115,6 +116,25 @@ object TestCommand {
                                         NpcLocations.activeWaypoints.add(NpcLocations.ActiveNpcWaypoint(npc.name, npc.x, npc.y, npc.z))
                                     }
                                 }
+                                1
+                            }))
+
+                    // /fa bestiarydump — toggle capture mode: while on, every /bestiary
+                    // page you open is scanned and logged automatically
+                    .then(literal("bestiarydump").executes {
+                        BestiaryZoneHighlight.toggleCapture()
+                        1
+                    })
+
+                    // /fa bestiaryids [filter] — dump Hypixel bestiary kill ids for custom_bestiary.json
+                    .then(literal("bestiaryids")
+                        .executes {
+                            BestiaryZoneHighlight.dumpKillIds("")
+                            1
+                        }
+                        .then(argument("filter", StringArgumentType.greedyString())
+                            .executes { ctx ->
+                                BestiaryZoneHighlight.dumpKillIds(StringArgumentType.getString(ctx, "filter"))
                                 1
                             }))
 

@@ -17,8 +17,16 @@ import org.kyowa.familyaddons.config.FamilyConfigManager
 
 object EntityHighlight {
 
-    val highlighted = mutableSetOf<Entity>()
+    val highlighted = mutableSetOf<Entity>()          // Highlight-category matches
+    val bestiaryHighlighted = mutableSetOf<Entity>()  // Bestiary zone/mob matches
     private var tick = 0
+
+    /** Bestiary highlighting runs independently of the Highlight category. */
+    private fun bestiaryActive(): Boolean {
+        val bestiary = FamilyConfigManager.config.bestiary
+        if (bestiary.zoneHighlightEnabled && bestiary.bestiaryZone != 0) return true
+        return bestiary.mobName.isNotBlank()
+    }
 
     private fun shouldScan(): Boolean {
         if (FamilyConfigManager.config.highlight.enabled) return true
@@ -74,47 +82,42 @@ object EntityHighlight {
      *    A pure substring match would falsely catch e.g. "Cave Spider" when
      *    "Spider" is the active target — hence the explicit modifier list.
      */
-    private fun nameMatches(entity: Entity): Boolean {
-        val manualNames = mutableListOf<String>()
-        val zoneNames   = mutableListOf<String>()
+    /** Highlight-category match: loose `.contains()` on name or customName. */
+    private fun matchesManual(entity: Entity): Boolean {
+        if (!FamilyConfigManager.config.highlight.enabled) return false
+        val manualNames = FamilyConfigManager.config.highlight.mobNames
+            .split(",")
+            .map { it.trim().lowercase() }
+            .filter { it.isNotBlank() }
+        if (manualNames.isEmpty()) return false
+        val name = entity.name.string.replace(COLOR_CODE_REGEX, "").lowercase()
+        val customNameRaw = entity.customName?.string?.replace(COLOR_CODE_REGEX, "")?.lowercase()
+        return manualNames.any { n -> name.contains(n) || customNameRaw?.contains(n) == true }
+    }
 
-        if (FamilyConfigManager.config.highlight.enabled) {
-            FamilyConfigManager.config.highlight.mobNames
-                .split(",")
-                .map { it.trim().lowercase() }
-                .filter { it.isNotBlank() }
-                .forEach { if (it !in manualNames) manualNames.add(it) }
-        }
-        val bestiaryMob = FamilyConfigManager.config.bestiary.mobName.trim().lowercase()
-        if (bestiaryMob.isNotBlank() && bestiaryMob !in manualNames) manualNames.add(bestiaryMob)
-
-        if (FamilyConfigManager.config.bestiary.zoneHighlightEnabled) {
-            BestiaryZoneHighlight.activeMobNames.forEach { mob ->
-                val lower = mob.lowercase()
-                if (lower.isNotBlank() && lower !in zoneNames) zoneNames.add(lower)
-            }
-        }
-
-        if (manualNames.isEmpty() && zoneNames.isEmpty()) return false
-
+    /**
+     * Bestiary match: the single tracked mob (loose contains, legacy
+     * behaviour), plus the zone-highlight names (stripped customName, exact
+     * equality or one allowed modifier prefix — see [matchesWithModifier]).
+     */
+    private fun matchesBestiary(entity: Entity): Boolean {
+        val bestiary = FamilyConfigManager.config.bestiary
         val name = entity.name.string.replace(COLOR_CODE_REGEX, "").lowercase()
         val customNameRaw = entity.customName?.string?.replace(COLOR_CODE_REGEX, "")?.lowercase()
 
-        // Manual list: loose substring match on either field (legacy behaviour).
-        if (manualNames.isNotEmpty()) {
-            if (manualNames.any { n -> name.contains(n) || customNameRaw?.contains(n) == true }) {
-                return true
-            }
+        val tracked = bestiary.mobName.trim().lowercase()
+        if (tracked.isNotBlank() && (name.contains(tracked) || customNameRaw?.contains(tracked) == true)) {
+            return true
         }
 
-        // Zone bestiary: stripped customName, exact equality OR allowed-modifier prefix.
-        if (zoneNames.isNotEmpty() && customNameRaw != null) {
-            val stripped = stripBestiaryNametag(customNameRaw)
-            if (stripped.isNotBlank() && zoneNames.any { matchesWithModifier(stripped, it) }) {
-                return true
+        if (bestiary.zoneHighlightEnabled && customNameRaw != null) {
+            val zoneNames = BestiaryZoneHighlight.activeMobNames
+                .map { it.lowercase() }.filter { it.isNotBlank() }
+            if (zoneNames.isNotEmpty()) {
+                val stripped = stripBestiaryNametag(customNameRaw)
+                if (stripped.isNotBlank() && zoneNames.any { matchesWithModifier(stripped, it) }) return true
             }
         }
-
         return false
     }
 
@@ -199,32 +202,42 @@ object EntityHighlight {
     }
 
     fun getOutlineColor(entity: Entity): Int {
-        val config = FamilyConfigManager.config.highlight
-        if (!config.enabled) return 0
-        if (config.drawingStyle != 1) return 0
-        if (entity !in highlighted) return 0
-        return try {
-            val parts = config.color.split(":")
-            val r = parts[2].toInt(); val g = parts[3].toInt(); val b = parts[4].toInt()
-            (0xFF shl 24) or (r shl 16) or (g shl 8) or b
-        } catch (e: Exception) { 0xFFFF0000.toInt() }
+        val highlightCfg = FamilyConfigManager.config.highlight
+        if (highlightCfg.enabled && highlightCfg.drawingStyle == 1 && entity in highlighted) {
+            return parseOutlineColor(highlightCfg.color)
+        }
+        val bestiaryCfg = FamilyConfigManager.config.bestiary
+        if (bestiaryActive() && bestiaryCfg.bestiaryDrawingStyle == 1 && entity in bestiaryHighlighted) {
+            return parseOutlineColor(bestiaryCfg.bestiaryColor)
+        }
+        return 0
     }
+
+    private fun parseOutlineColor(s: String): Int = try {
+        val parts = s.split(":")
+        (0xFF shl 24) or (parts[2].toInt() shl 16) or (parts[3].toInt() shl 8) or parts[4].toInt()
+    } catch (e: Exception) { 0xFFFF0000.toInt() }
 
     fun register() {
         ClientTickEvents.END_CLIENT_TICK.register { _ ->
             if (!shouldScan()) {
                 if (highlighted.isNotEmpty()) highlighted.clear()
+                if (bestiaryHighlighted.isNotEmpty()) bestiaryHighlighted.clear()
                 return@register
             }
             val interval = FamilyConfigManager.config.utilities.highlightRescanInterval.toInt().coerceIn(1, 20)
             if (tick++ % interval != 0) return@register
             rescan()
         }
-        ClientPlayConnectionEvents.DISCONNECT.register { _, _ -> highlighted.clear() }
+        ClientPlayConnectionEvents.DISCONNECT.register { _, _ ->
+            highlighted.clear()
+            bestiaryHighlighted.clear()
+        }
     }
 
     fun rescan() {
         highlighted.clear()
+        bestiaryHighlighted.clear()
         val world = Minecraft.getInstance().level ?: return
         if (!shouldScan()) return
         world.entitiesForRendering().forEach { entity ->
@@ -234,7 +247,9 @@ object EntityHighlight {
             // player skins (Hypixel's fake-player NPCs) pass this check because they are not
             // in the tab list — they will still be highlighted normally.
             if (isRealPlayer(entity)) return@forEach
-            if (nameMatches(entity)) {
+            val manual = matchesManual(entity)
+            val bestiary = matchesBestiary(entity)
+            if (manual || bestiary) {
                 // FIX: if resolveEntity returns null (nametag stand can't find its real mob
                 // because the mob died this tick), skip entirely. The old `?: entity` fallback
                 // would add the armor stand itself to `highlighted`, causing the tracer to
@@ -244,39 +259,55 @@ object EntityHighlight {
                 if (target is ArmorStand && target.isInvisible) return@forEach
                 // Defensive: resolveEntity already filters real players, but double-check.
                 if (isRealPlayer(target)) return@forEach
-                if (target.isAlive) highlighted.add(target)
+                if (!target.isAlive) return@forEach
+                if (manual) highlighted.add(target)
+                if (bestiary) bestiaryHighlighted.add(target)
             }
         }
     }
 
     fun onWorldRender(matrices: PoseStack, consumers: MultiBufferSource, cam: Vec3) {
         val config = FamilyConfigManager.config.highlight
-        if (!config.enabled) return
+        // shouldScan(), not config.enabled: the bestiary zone/mob highlight
+        // must render on its own without the Highlight category toggle.
+        if (!shouldScan()) return
         if (highlighted.isEmpty()) return
 
-        val (r, g, b) = try {
-            val parts = config.color.split(":")
+        fun parseRgb(s: String, fallback: Triple<Float, Float, Float>): Triple<Float, Float, Float> = try {
+            val parts = s.split(":")
             Triple(parts[2].toInt() / 255f, parts[3].toInt() / 255f, parts[4].toInt() / 255f)
-        } catch (e: Exception) { Triple(1f, 0f, 0f) }
+        } catch (e: Exception) { fallback }
+
+        val (r, g, b) = parseRgb(config.color, Triple(1f, 0f, 0f))
 
         highlighted.removeIf { !it.isAlive }
+        bestiaryHighlighted.removeIf { !it.isAlive }
 
-        // ── ESP boxes ─────────────────────────────────────────────────
-        if (config.drawingStyle == 0) {
+        // ── ESP boxes — each source drawn with its own color/style ────
+        fun drawBoxes(targets: Set<Entity>, rgb: Triple<Float, Float, Float>) {
+            val (br, bg, bb2) = rgb
             fun drawAll(alpha: Float, renderType: RenderType) {
                 val buf = consumers.getBuffer(renderType)
                 val entry = matrices.last()
-                for (entity in highlighted) {
+                for (entity in targets) {
                     if (!entity.isAlive) continue
                     val bb = entity.boundingBox
                     drawBoxEdges(buf, entry,
                         (bb.minX - cam.x).toFloat(), (bb.minY - cam.y).toFloat(), (bb.minZ - cam.z).toFloat(),
                         (bb.maxX - cam.x).toFloat(), (bb.maxY - cam.y).toFloat(), (bb.maxZ - cam.z).toFloat(),
-                        r, g, b, alpha)
+                        br, bg, bb2, alpha)
                 }
             }
             drawAll(1.0f, FamilyRenderTypes.LINES)
             drawAll(0.3f, FamilyRenderTypes.LINES_NO_DEPTH)
+        }
+
+        if (config.enabled && config.drawingStyle == 0 && highlighted.isNotEmpty()) {
+            drawBoxes(highlighted, Triple(r, g, b))
+        }
+        val bestiaryCfg = FamilyConfigManager.config.bestiary
+        if (bestiaryActive() && bestiaryCfg.bestiaryDrawingStyle == 0 && bestiaryHighlighted.isNotEmpty()) {
+            drawBoxes(bestiaryHighlighted, parseRgb(bestiaryCfg.bestiaryColor, Triple(1f, 0.67f, 0f)))
         }
 
         // ── Tracer lines ──────────────────────────────────────────────
@@ -291,7 +322,7 @@ object EntityHighlight {
             // Pick the closest N live+highlighted+in-range mobs each frame.
             // When a mob dies it leaves `highlighted` → instantly drops from this list.
             val targets = ArrayList<Entity>()
-            for (entity in highlighted) {
+            for (entity in highlighted + bestiaryHighlighted) {
                 if (!entity.isAlive) continue
                 // FIX: never run a tracer to an invisible nametag armor stand. Belt-and-braces
                 // in case one ever makes it into `highlighted` through some other code path.
@@ -349,7 +380,7 @@ object EntityHighlight {
         }
     }
 
-    fun hasHighlighted() = highlighted.isNotEmpty() && shouldScan()
+    fun hasHighlighted() = (highlighted.isNotEmpty() || bestiaryHighlighted.isNotEmpty()) && shouldScan()
 
     internal fun drawBoxEdges(
         buf: VertexConsumer,
