@@ -72,11 +72,11 @@ object BestiaryZoneHighlight {
     /** Maxed mobs are always detected/persisted; whether they are hidden from
      *  the highlight set is the user's choice (Hide Maxed Mobs toggle). */
     private fun applyMaxFilter(all: Set<String>, maxed: Set<String>): Set<String> =
-        if (FamilyConfigManager.config.bestiary.hideMaxedMobs) all - maxed else all
+        if (FamilyConfigManager.config.highlight.hideMaxedMobs) all - maxed else all
 
     fun register() {
         ClientTickEvents.END_CLIENT_TICK.register { _ ->
-            val cfg = FamilyConfigManager.config.bestiary
+            val cfg = FamilyConfigManager.config.highlight
 
             val zoneChanged = cfg.bestiaryZone != lastZoneIndex
             val enabledChanged = cfg.zoneHighlightEnabled != lastZoneHighlightEnabled
@@ -116,7 +116,7 @@ object BestiaryZoneHighlight {
                 if (!repoLoaded) loadRepo()
                 loadCustomIfChanged()
 
-                val cfg = FamilyConfigManager.config.bestiary
+                val cfg = FamilyConfigManager.config.highlight
                 val zoneIndex = cfg.bestiaryZone
                 if (zoneIndex <= 0 || zoneIndex >= ZONES.size) { activeMobNames = emptySet(); return@runAsync }
                 val zoneName = ZONES[zoneIndex]
@@ -203,10 +203,10 @@ object BestiaryZoneHighlight {
     }
 
     fun checkMaxFromTablist() {
-        if (!FamilyConfigManager.config.bestiary.zoneHighlightEnabled) return
+        if (!FamilyConfigManager.config.highlight.zoneHighlightEnabled) return
         if (allZoneMobNames.isEmpty()) return
 
-        val cfg = FamilyConfigManager.config.bestiary
+        val cfg = FamilyConfigManager.config.highlight
         val maxed = readMaxedMobsFromTablist()
 
         val newMaxed = maxed - cfg.maxedMobs
@@ -560,7 +560,7 @@ object BestiaryZoneHighlight {
                     .map { NAME_REMAPS[it.base.lowercase()] ?: it.base }
                     .toSet()
                 if (guiMaxed.isNotEmpty()) {
-                    val cfg = FamilyConfigManager.config.bestiary
+                    val cfg = FamilyConfigManager.config.highlight
                     val newMaxed = guiMaxed - cfg.maxedMobs
                     if (newMaxed.isNotEmpty()) {
                         cfg.maxedMobs.addAll(newMaxed)

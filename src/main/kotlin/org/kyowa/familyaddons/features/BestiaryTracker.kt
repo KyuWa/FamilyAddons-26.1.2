@@ -45,14 +45,14 @@ object BestiaryTracker {
 
     // ── HUD proxy to config ───────────────────────────────────────────
     var hudX: Int
-        get() = FamilyConfigManager.config.bestiary.hudX
-        set(v) { FamilyConfigManager.config.bestiary.hudX = v }
+        get() = FamilyConfigManager.config.highlight.bestiaryHudX
+        set(v) { FamilyConfigManager.config.highlight.bestiaryHudX = v }
     var hudY: Int
-        get() = FamilyConfigManager.config.bestiary.hudY
-        set(v) { FamilyConfigManager.config.bestiary.hudY = v }
+        get() = FamilyConfigManager.config.highlight.bestiaryHudY
+        set(v) { FamilyConfigManager.config.highlight.bestiaryHudY = v }
     var hudScale: Float
-        get() = FamilyConfigManager.config.bestiary.hudScale
-        set(v) { FamilyConfigManager.config.bestiary.hudScale = v }
+        get() = FamilyConfigManager.config.highlight.bestiaryHudScale
+        set(v) { FamilyConfigManager.config.highlight.bestiaryHudScale = v }
 
     fun save() = FamilyConfigManager.save()
 
@@ -61,7 +61,7 @@ object BestiaryTracker {
 
     fun hudH(): Int {
         var h = 38 // title(12) + kills(10) + bestiaryKills(10) + padding(6)
-        if (FamilyConfigManager.config.bestiary.displayMode == 1) h += 10 // uptime line
+        if (FamilyConfigManager.config.highlight.displayMode == 1) h += 10 // uptime line
         return h
     }
 
@@ -70,7 +70,7 @@ object BestiaryTracker {
 
         // Poll tablist every 60 ticks (~3s)
         ClientTickEvents.END_CLIENT_TICK.register { client ->
-            if (!FamilyConfigManager.config.bestiary.enabled) return@register
+            if (!FamilyConfigManager.config.highlight.bestiaryHudEnabled) return@register
             if (tickCounter++ % 60 != 0) return@register
             parseTablist(client)
             // Also update zone highlight MAX check using fresh tablist data
@@ -79,16 +79,16 @@ object BestiaryTracker {
 
         // Auto-grab mob name from tablist every 10s when enabled and text box is empty
         ClientTickEvents.END_CLIENT_TICK.register { client ->
-            if (!FamilyConfigManager.config.bestiary.enabled) return@register
-            if (!FamilyConfigManager.config.bestiary.autoMobName) return@register
-            if (FamilyConfigManager.config.bestiary.mobName.isNotBlank()) return@register
+            if (!FamilyConfigManager.config.highlight.bestiaryHudEnabled) return@register
+            if (!FamilyConfigManager.config.highlight.autoMobName) return@register
+            if (FamilyConfigManager.config.highlight.mobName.isNotBlank()) return@register
             if (autoTickCounter++ % 200 != 0) return@register
             grabMobNameFromTablist(client)
         }
 
         // Mode switcher click (inventory only)
         ClientTickEvents.END_CLIENT_TICK.register { client ->
-            if (!FamilyConfigManager.config.bestiary.enabled) return@register
+            if (!FamilyConfigManager.config.highlight.bestiaryHudEnabled) return@register
             if (client.screen !is InventoryScreen) { mouseWasDown = false; return@register }
 
             val mouseDown = org.lwjgl.glfw.GLFW.glfwGetMouseButton(
@@ -99,7 +99,7 @@ object BestiaryTracker {
                 val mx = client.mouseHandler.getScaledXPos(client.window)
                 val my = client.mouseHandler.getScaledYPos(client.window)
                 if (isHoveringModeLabel(mx, my)) {
-                    val cfg = FamilyConfigManager.config.bestiary
+                    val cfg = FamilyConfigManager.config.highlight
                     cfg.displayMode = if (cfg.displayMode == 0) 1 else 0
                     if (cfg.displayMode == 1 && !sessionActive) startSession()
                     FamilyConfigManager.save()
@@ -110,7 +110,7 @@ object BestiaryTracker {
 
         // Reset session click (inventory only, session mode only)
         ClientTickEvents.END_CLIENT_TICK.register { client ->
-            if (!FamilyConfigManager.config.bestiary.enabled) return@register
+            if (!FamilyConfigManager.config.highlight.bestiaryHudEnabled) return@register
             if (client.screen !is InventoryScreen) { resetMouseWasDown = false; return@register }
 
             val mouseDown = org.lwjgl.glfw.GLFW.glfwGetMouseButton(
@@ -133,8 +133,8 @@ object BestiaryTracker {
     }
 
     private fun renderBestiaryHud(ctx: GuiGraphicsExtractor) {
-        val cfg = FamilyConfigManager.config.bestiary
-        if (!cfg.enabled) return
+        val cfg = FamilyConfigManager.config.highlight
+        if (!cfg.bestiaryHudEnabled) return
         // Show HUD if manual name set OR auto-detect is on (may not have grabbed yet)
         val hasTarget = cfg.mobName.isNotBlank() || (cfg.autoMobName && autoMobName.isNotBlank())
         if (!hasTarget) return
@@ -151,8 +151,8 @@ object BestiaryTracker {
 
         val m = ctx.pose()
         m.pushMatrix()
-        m.translate(cfg.hudX.toFloat(), cfg.hudY.toFloat())
-        m.scale(cfg.hudScale, cfg.hudScale)
+        m.translate(cfg.bestiaryHudX.toFloat(), cfg.bestiaryHudY.toFloat())
+        m.scale(cfg.bestiaryHudScale, cfg.bestiaryHudScale)
 
         var y = 3
 
@@ -203,18 +203,18 @@ object BestiaryTracker {
     // ── Hover regions ─────────────────────────────────────────────────
     // Bestiary Kills line: y offset = 3 + 12 + 10 = 25
     private fun isHoveringModeLabel(mx: Double, my: Double): Boolean {
-        val cfg = FamilyConfigManager.config.bestiary
-        val sc = cfg.hudScale.toDouble()
-        val sx = cfg.hudX.toDouble(); val sy = cfg.hudY.toDouble()
+        val cfg = FamilyConfigManager.config.highlight
+        val sc = cfg.bestiaryHudScale.toDouble()
+        val sx = cfg.bestiaryHudX.toDouble(); val sy = cfg.bestiaryHudY.toDouble()
         return mx >= sx && mx <= sx + HUD_W * sc &&
                 my >= sy + 25 * sc && my <= sy + 35 * sc
     }
 
     // Reset label: after uptime line = 3+12+10+10+10 = 45
     private fun isHoveringResetLabel(mx: Double, my: Double): Boolean {
-        val cfg = FamilyConfigManager.config.bestiary
-        val sc = cfg.hudScale.toDouble()
-        val sx = cfg.hudX.toDouble(); val sy = cfg.hudY.toDouble()
+        val cfg = FamilyConfigManager.config.highlight
+        val sc = cfg.bestiaryHudScale.toDouble()
+        val sx = cfg.bestiaryHudX.toDouble(); val sy = cfg.bestiaryHudY.toDouble()
         return mx >= sx && mx <= sx + HUD_W * sc &&
                 my >= sy + 45 * sc && my <= sy + 55 * sc
     }
@@ -293,7 +293,7 @@ object BestiaryTracker {
     // ── Tablist parser ────────────────────────────────────────────────
     private fun parseTablist(client: Minecraft) {
         val tabList = client.connection?.onlinePlayers ?: return
-        val cfg = FamilyConfigManager.config.bestiary
+        val cfg = FamilyConfigManager.config.highlight
         val target = cfg.mobName.trim().lowercase()
 
         // Resolve effective mob name: manual text box takes priority over auto-grabbed

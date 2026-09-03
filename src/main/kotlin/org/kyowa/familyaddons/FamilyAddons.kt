@@ -64,6 +64,7 @@ object FamilyAddons : ClientModInitializer {
         ParkourCommand.register()
         EntityHighlight.register()
         ShulkerBoxHighlight.register()
+        SparklingCritterHighlight.register()
         PickaxeAbility.register()
         WorldScanner.register()
 

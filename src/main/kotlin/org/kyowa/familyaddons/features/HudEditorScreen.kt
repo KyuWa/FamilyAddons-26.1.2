@@ -158,21 +158,21 @@ class HudEditorScreen : Screen(Component.literal("FA HUD Editor")) {
         ))
 
         // Bestiary HUD
-        val bCfg = FamilyConfigManager.config.bestiary
+        val bCfg = FamilyConfigManager.config.highlight
         val mobName = if (bCfg.mobName.isNotBlank()) bCfg.mobName else "Zombie"
         elements.add(HudElement(
             id = "bestiary", label = "Bestiary HUD",
-            x = bCfg.hudX, y = bCfg.hudY,
+            x = bCfg.bestiaryHudX, y = bCfg.bestiaryHudY,
             w = BestiaryTracker.HUD_W, h = BestiaryTracker.hudH(),
-            scale = bCfg.hudScale,
+            scale = bCfg.bestiaryHudScale,
             canScale = true,
             onSave = { elem ->
-                FamilyConfigManager.config.bestiary.hudX = elem.x
-                FamilyConfigManager.config.bestiary.hudY = elem.y
-                FamilyConfigManager.config.bestiary.hudScale = elem.scale
+                FamilyConfigManager.config.highlight.bestiaryHudX = elem.x
+                FamilyConfigManager.config.highlight.bestiaryHudY = elem.y
+                FamilyConfigManager.config.highlight.bestiaryHudScale = elem.scale
             },
             renderContent = { ctx, _ ->
-                val isSession = FamilyConfigManager.config.bestiary.displayMode == 1
+                val isSession = FamilyConfigManager.config.highlight.displayMode == 1
                 var ry = 3
                 ctx.text(tr, "§6§l$mobName Bestiary", 4, ry, -1, true); ry += 12
                 ctx.text(tr, "§eKills: §f${"%,d".format(BestiaryTracker.kills)}", 4, ry, -1, true); ry += 10

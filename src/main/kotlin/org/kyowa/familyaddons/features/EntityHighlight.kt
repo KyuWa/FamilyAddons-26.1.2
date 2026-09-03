@@ -21,68 +21,24 @@ object EntityHighlight {
     val bestiaryHighlighted = mutableSetOf<Entity>()  // Bestiary zone/mob matches
     private var tick = 0
 
-    /** Bestiary highlighting runs independently of the Highlight category. */
+    /** True when any bestiary highlight source is configured (master toggle
+     *  is checked separately — the category's Enable Highlight gates all). */
     private fun bestiaryActive(): Boolean {
-        val bestiary = FamilyConfigManager.config.bestiary
-        if (bestiary.zoneHighlightEnabled && bestiary.bestiaryZone != 0) return true
-        return bestiary.mobName.isNotBlank()
+        val cfg = FamilyConfigManager.config.highlight
+        if (!cfg.enabled) return false
+        if (cfg.zoneHighlightEnabled && cfg.bestiaryZone != 0) return true
+        return cfg.mobName.isNotBlank()
     }
 
     private fun shouldScan(): Boolean {
-        if (FamilyConfigManager.config.highlight.enabled) return true
-        val bestiary = FamilyConfigManager.config.bestiary
-        if (bestiary.zoneHighlightEnabled && bestiary.bestiaryZone != 0) return true
-        if (bestiary.mobName.isNotBlank()) return true
-        return false
+        val cfg = FamilyConfigManager.config.highlight
+        if (!cfg.enabled) return false
+        if (cfg.mobNames.isNotBlank()) return true
+        if (cfg.zoneHighlightEnabled && cfg.bestiaryZone != 0) return true
+        return cfg.mobName.isNotBlank()
     }
 
-    /**
-     * Returns the union of all configured highlight names. Used by `shouldScan()`'s
-     * downstream logic and any external callers. Match logic itself lives in
-     * `nameMatches()`, which uses different rules for manual-highlight names vs
-     * zone-bestiary names.
-     */
-    private fun getNames(): List<String> {
-        val names = mutableListOf<String>()
-        if (FamilyConfigManager.config.highlight.enabled) {
-            FamilyConfigManager.config.highlight.mobNames
-                .split(",")
-                .map { it.trim().lowercase() }
-                .filter { it.isNotBlank() }
-                .forEach { if (it !in names) names.add(it) }
-        }
-        val bestiaryMob = FamilyConfigManager.config.bestiary.mobName.trim().lowercase()
-        if (bestiaryMob.isNotBlank() && bestiaryMob !in names) names.add(bestiaryMob)
-        if (FamilyConfigManager.config.bestiary.zoneHighlightEnabled) {
-            BestiaryZoneHighlight.activeMobNames.forEach { mob ->
-                val lower = mob.lowercase()
-                if (lower.isNotBlank() && lower !in names) names.add(lower)
-            }
-        }
-        return names
-    }
-
-    /**
-     * Match an entity against configured highlight names.
-     *
-     * Two pools with different rules:
-     *  - Manual names (HighlightConfig.mobNames + BestiaryConfig.mobName): loose
-     *    `.contains()` on either entity.name or customName. Preserves the old
-     *    behaviour where typing "dragon" matches anything dragon-related.
-     *  - Zone-bestiary names (BestiaryZoneHighlight.activeMobNames): match
-     *    against the customName ONLY, after stripping all decorations (level
-     *    brackets, stars, hearts, runic glyphs, etc.). The match accepts:
-     *      * exact equality, OR
-     *      * the stripped name with one allowed modifier word prefix
-     *        ("corrupted" or "runic"), since those variants share a bestiary
-     *        entry with their base mob (per Hypixel wiki).
-     *    This fixes Hypixel reusing one entity type across multiple bestiary
-     *    entries (Wither Skeleton ↔ Wither Spectre) while still highlighting
-     *    "Corrupted Wither Skeleton" / "Runic Wither Skeleton" correctly.
-     *    A pure substring match would falsely catch e.g. "Cave Spider" when
-     *    "Spider" is the active target — hence the explicit modifier list.
-     */
-    /** Highlight-category match: loose `.contains()` on name or customName. */
+    /** Highlight name-list match: loose `.contains()` on name or customName. */
     private fun matchesManual(entity: Entity): Boolean {
         if (!FamilyConfigManager.config.highlight.enabled) return false
         val manualNames = FamilyConfigManager.config.highlight.mobNames
@@ -101,7 +57,7 @@ object EntityHighlight {
      * equality or one allowed modifier prefix — see [matchesWithModifier]).
      */
     private fun matchesBestiary(entity: Entity): Boolean {
-        val bestiary = FamilyConfigManager.config.bestiary
+        val bestiary = FamilyConfigManager.config.highlight
         val name = entity.name.string.replace(COLOR_CODE_REGEX, "").lowercase()
         val customNameRaw = entity.customName?.string?.replace(COLOR_CODE_REGEX, "")?.lowercase()
 
@@ -128,7 +84,7 @@ object EntityHighlight {
      * This is intentionally a small whitelist to avoid false positives like
      * "Cave Spider" matching when "Spider" is the active target.
      */
-    private val ALLOWED_MODIFIERS = setOf("corrupted", "runic")
+    private val ALLOWED_MODIFIERS = setOf("corrupted", "runic", "sparkling")
 
     private fun matchesWithModifier(stripped: String, target: String): Boolean {
         if (stripped == target) return true
@@ -202,13 +158,13 @@ object EntityHighlight {
     }
 
     fun getOutlineColor(entity: Entity): Int {
-        val highlightCfg = FamilyConfigManager.config.highlight
-        if (highlightCfg.enabled && highlightCfg.drawingStyle == 1 && entity in highlighted) {
-            return parseOutlineColor(highlightCfg.color)
+        val cfg = FamilyConfigManager.config.highlight
+        if (!cfg.enabled) return 0
+        if (cfg.drawingStyle == 1 && entity in highlighted) {
+            return parseOutlineColor(cfg.color)
         }
-        val bestiaryCfg = FamilyConfigManager.config.bestiary
-        if (bestiaryActive() && bestiaryCfg.bestiaryDrawingStyle == 1 && entity in bestiaryHighlighted) {
-            return parseOutlineColor(bestiaryCfg.bestiaryColor)
+        if (bestiaryActive() && cfg.bestiaryDrawingStyle == 1 && entity in bestiaryHighlighted) {
+            return parseOutlineColor(cfg.bestiaryColor)
         }
         return 0
     }
@@ -268,10 +224,9 @@ object EntityHighlight {
 
     fun onWorldRender(matrices: PoseStack, consumers: MultiBufferSource, cam: Vec3) {
         val config = FamilyConfigManager.config.highlight
-        // shouldScan(), not config.enabled: the bestiary zone/mob highlight
-        // must render on its own without the Highlight category toggle.
-        if (!shouldScan()) return
-        if (highlighted.isEmpty()) return
+        if (!config.enabled) return
+        val shulkerTargets = ShulkerBoxHighlight.trackedEntities() + SparklingCritterHighlight.trackedEntities()
+        if (highlighted.isEmpty() && bestiaryHighlighted.isEmpty() && shulkerTargets.isEmpty()) return
 
         fun parseRgb(s: String, fallback: Triple<Float, Float, Float>): Triple<Float, Float, Float> = try {
             val parts = s.split(":")
@@ -299,15 +254,14 @@ object EntityHighlight {
                 }
             }
             drawAll(1.0f, FamilyRenderTypes.LINES)
-            drawAll(0.3f, FamilyRenderTypes.LINES_NO_DEPTH)
+            drawAll(1.0f, FamilyRenderTypes.LINES_NO_DEPTH)
         }
 
-        if (config.enabled && config.drawingStyle == 0 && highlighted.isNotEmpty()) {
+        if (config.drawingStyle == 0 && highlighted.isNotEmpty()) {
             drawBoxes(highlighted, Triple(r, g, b))
         }
-        val bestiaryCfg = FamilyConfigManager.config.bestiary
-        if (bestiaryActive() && bestiaryCfg.bestiaryDrawingStyle == 0 && bestiaryHighlighted.isNotEmpty()) {
-            drawBoxes(bestiaryHighlighted, parseRgb(bestiaryCfg.bestiaryColor, Triple(1f, 0.67f, 0f)))
+        if (bestiaryActive() && config.bestiaryDrawingStyle == 0 && bestiaryHighlighted.isNotEmpty()) {
+            drawBoxes(bestiaryHighlighted, parseRgb(config.bestiaryColor, Triple(1f, 0.67f, 0f)))
         }
 
         // ── Tracer lines ──────────────────────────────────────────────
@@ -322,7 +276,7 @@ object EntityHighlight {
             // Pick the closest N live+highlighted+in-range mobs each frame.
             // When a mob dies it leaves `highlighted` → instantly drops from this list.
             val targets = ArrayList<Entity>()
-            for (entity in highlighted + bestiaryHighlighted) {
+            for (entity in highlighted + bestiaryHighlighted + shulkerTargets) {
                 if (!entity.isAlive) continue
                 // FIX: never run a tracer to an invisible nametag armor stand. Belt-and-braces
                 // in case one ever makes it into `highlighted` through some other code path.

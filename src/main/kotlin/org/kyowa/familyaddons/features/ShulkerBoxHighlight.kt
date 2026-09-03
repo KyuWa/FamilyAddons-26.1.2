@@ -38,12 +38,18 @@ object ShulkerBoxHighlight {
 
     private fun cfg() = FamilyConfigManager.config.highlight
 
+    // The Highlight/BE master toggle gates this feature too.
+    private fun active() = cfg().enabled && cfg().shulkerHighlightEnabled
+
+    /** Shulker entities currently tracked — used by EntityHighlight's tracers. */
+    fun trackedEntities(): List<Entity> = if (active()) entityBoxes else emptyList()
+
     fun register() {
         ClientPlayConnectionEvents.JOIN.register { _, _, _ -> boxes.clear(); entityBoxes.clear() }
         ClientPlayConnectionEvents.DISCONNECT.register { _, _ -> boxes.clear(); entityBoxes.clear() }
 
         ClientTickEvents.END_CLIENT_TICK.register { client ->
-            if (!cfg().shulkerHighlightEnabled) {
+            if (!active()) {
                 if (boxes.isNotEmpty()) boxes.clear()
                 if (entityBoxes.isNotEmpty()) entityBoxes.clear()
                 return@register
@@ -81,7 +87,7 @@ object ShulkerBoxHighlight {
         }
     }
 
-    fun hasBoxes() = (boxes.isNotEmpty() || entityBoxes.isNotEmpty()) && cfg().shulkerHighlightEnabled
+    fun hasBoxes() = (boxes.isNotEmpty() || entityBoxes.isNotEmpty()) && active()
 
     /** Parse "chroma:alpha:r:g:b" → Float[4] (r,g,b,a) in 0..1. */
     private fun parseColor(s: String, fallback: FloatArray = floatArrayOf(0.8f, 0.4f, 1f, 1f)): FloatArray {
@@ -124,7 +130,7 @@ object ShulkerBoxHighlight {
             immediate.endBatch(renderType)
         }
         emit(FamilyRenderTypes.LINES, a)
-        emit(FamilyRenderTypes.LINES_NO_DEPTH, a * 0.3f)
+        emit(FamilyRenderTypes.LINES_NO_DEPTH, a)
 
         matrices.popPose()
     }

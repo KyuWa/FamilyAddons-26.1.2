@@ -133,7 +133,7 @@ object KuudraStunWaypoint {
         boxEdges(immediate.getBuffer(FamilyRenderTypes.LINES), pose, box, r, g, b, a)
         immediate.endBatch(FamilyRenderTypes.LINES)
         // Faded through walls
-        boxEdges(immediate.getBuffer(FamilyRenderTypes.LINES_NO_DEPTH), pose, box, r, g, b, a * 0.3f)
+        boxEdges(immediate.getBuffer(FamilyRenderTypes.LINES_NO_DEPTH), pose, box, r, g, b, a)
         immediate.endBatch(FamilyRenderTypes.LINES_NO_DEPTH)
     }
 

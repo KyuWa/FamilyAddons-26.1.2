@@ -92,6 +92,23 @@ object FamilyConfigManager {
                 if (v != null && !kuudra.has(k)) kuudra.add(k, v)
             }
         }
+
+        // "Bestiary" category merged into "Highlight/BE" (the highlight
+        // object). Renames avoid clashes with existing highlight keys.
+        (obj.remove("bestiary") as? JsonObject)?.let { legacy ->
+            val highlight = obj.getAsJsonObject("highlight")
+                ?: JsonObject().also { obj.add("highlight", it) }
+            val renames = mapOf(
+                "enabled" to "bestiaryHudEnabled",
+                "hudX" to "bestiaryHudX",
+                "hudY" to "bestiaryHudY",
+                "hudScale" to "bestiaryHudScale",
+            )
+            for ((k, v) in legacy.entrySet()) {
+                val key = renames[k] ?: k
+                if (!highlight.has(key)) highlight.add(key, v)
+            }
+        }
     }
 
     fun save() {

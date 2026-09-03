@@ -1,10 +1,15 @@
 package org.kyowa.familyaddons.features
 
+import com.mojang.blaze3d.pipeline.DepthStencilState
+import com.mojang.blaze3d.pipeline.RenderPipeline
+import com.mojang.blaze3d.platform.CompareOp
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.client.renderer.rendertype.LayeringTransform
 import net.minecraft.client.renderer.rendertype.OutputTarget
 import net.minecraft.client.renderer.rendertype.RenderSetup
 import net.minecraft.client.renderer.rendertype.RenderType
+import net.minecraft.resources.Identifier
+import org.kyowa.familyaddons.FamilyAddons
 
 object FamilyRenderTypes {
 
@@ -18,14 +23,47 @@ object FamilyRenderTypes {
         )
     }
 
-    // 26.1 assembles the vanilla LINES pipeline from private shader snippets, so a
-    // depth-test-disabled clone can't be declared without re-creating the whole
-    // pipeline. LINES_DEPTH_BIAS biases depth toward the camera so the tracer draws
-    // on top of world geometry in practice (the original used a true no-depth pipeline).
+    /**
+     * True depth-test-disabled clone of the vanilla LINES pipeline. 26.1 keeps
+     * the shader snippets private, but every getter needed to rebuild the
+     * pipeline is public, so we copy it field-by-field and swap the depth
+     * state for ALWAYS_PASS. Falls back to the old DEPTH_BIAS approximation
+     * if a future version changes the pipeline shape.
+     */
+    private val LINES_NO_DEPTH_PIPELINE: RenderPipeline by lazy {
+        try {
+            val base = RenderPipelines.LINES
+            val builder = RenderPipeline.builder()
+                .withLocation(Identifier.fromNamespaceAndPath("familyaddons", "pipeline/lines_no_depth"))
+                .withVertexShader(base.vertexShader)
+                .withFragmentShader(base.fragmentShader)
+                .withVertexFormat(base.vertexFormat, base.vertexFormatMode)
+                .withColorTargetState(base.colorTargetState)
+                .withCull(base.isCull)
+                .withPolygonMode(base.polygonMode)
+                .withDepthStencilState(DepthStencilState(CompareOp.ALWAYS_PASS, false))
+            base.samplers.forEach { builder.withSampler(it) }
+            base.uniforms.forEach { u ->
+                val tf = u.textureFormat()
+                if (tf != null) builder.withUniform(u.name(), u.type(), tf)
+                else builder.withUniform(u.name(), u.type())
+            }
+            base.shaderDefines.flags().forEach { builder.withShaderDefine(it) }
+            base.shaderDefines.values().forEach { (k, v) ->
+                v.toIntOrNull()?.let { builder.withShaderDefine(k, it) }
+                    ?: v.toFloatOrNull()?.let { builder.withShaderDefine(k, it) }
+            }
+            builder.build()
+        } catch (e: Exception) {
+            FamilyAddons.LOGGER.warn("Couldn't build no-depth line pipeline, falling back to depth bias", e)
+            RenderPipelines.LINES_DEPTH_BIAS
+        }
+    }
+
     val LINES_NO_DEPTH: RenderType by lazy {
         RenderType.create(
             "familyaddons_lines_no_depth",
-            RenderSetup.builder(RenderPipelines.LINES_DEPTH_BIAS)
+            RenderSetup.builder(LINES_NO_DEPTH_PIPELINE)
                 .setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
                 .setOutputTarget(OutputTarget.MAIN_TARGET)
                 .createRenderSetup()

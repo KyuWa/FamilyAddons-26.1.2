@@ -54,16 +54,12 @@ class FamilyConfig : Config() {
     var parkour = ParkourConfig()
 
     @Expose @JvmField
-    @Category(name = "Highlight", desc = "ESP highlight for entities")
+    @Category(name = "Highlight/BE", desc = "Entity ESP + Bestiary highlight and tracker")
     var highlight = HighlightConfig()
 
     @Expose @JvmField
     @Category(name = "Keybinds", desc = "GFS keybinds for quick item restocking")
     var keybinds = KeybindsConfig()
-
-    @Expose @JvmField
-    @Category(name = "Bestiary", desc = "Bestiary kill tracker HUD")
-    var bestiary = BestiaryConfig()
 
     @Expose @JvmField
     @Category(name = "Player Disguise", desc = "Replace player renders with a mob model")

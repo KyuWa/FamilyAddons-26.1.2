@@ -138,6 +138,12 @@ object TestCommand {
                                 1
                             }))
 
+                    // /fa critterdump — log nearby entities + sparkle data for tuning detection
+                    .then(literal("critterdump").executes {
+                        org.kyowa.familyaddons.features.SparklingCritterHighlight.dumpNearby()
+                        1
+                    })
+
                     // /fa npcclear
                     .then(literal("npcclear").executes { ctx ->
                         NpcLocations.activeWaypoints.clear()
