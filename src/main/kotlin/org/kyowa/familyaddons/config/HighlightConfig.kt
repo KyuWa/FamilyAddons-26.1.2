@@ -30,6 +30,16 @@ class HighlightConfig {
     var drawingStyle = 0
 
     @Expose @JvmField
+    @ConfigOption(name = "Highlight Shulkers", desc = "Draw a wireframe box on shulker mobs, plus placed shulker boxes and falling-block fakes. Independent of the mob name list above.")
+    @ConfigEditorBoolean
+    var shulkerHighlightEnabled = false
+
+    @Expose @JvmField
+    @ConfigOption(name = "Shulker Color", desc = "Color of the shulker highlight.")
+    @ConfigEditorColour
+    var shulkerColor = "0:255:200:100:255"
+
+    @Expose @JvmField
     @ConfigOption(name = "Tracer Lines", desc = "Draw lines from your crosshair to the nearest highlighted mobs.")
     @ConfigEditorBoolean
     var tracerEnabled = false
