@@ -20,7 +20,6 @@ import org.kyowa.familyaddons.features.pearl.PearlCalculator
 import org.kyowa.familyaddons.features.pearl.Place
 import org.kyowa.familyaddons.features.pearl.Pre
 import org.kyowa.familyaddons.features.pearl.Prio
-import org.lwjgl.opengl.GL11
 import kotlin.math.sqrt
 
 /**
@@ -440,8 +439,10 @@ object PearlWaypoints {
         val r = color[0]; val g = color[1]; val b = color[2]; val a = color[3]
         val cx = center.x.toFloat(); val cy = center.y.toFloat(); val cz = center.z.toFloat()
         val h = half.toFloat()
-        fun emit(alpha: Float) {
-            val buf = immediate.getBuffer(org.kyowa.familyaddons.features.FamilyRenderTypes.LINES)
+        // Depth testing is baked into the pipeline now, so the see-through pass
+        // goes through LINES_NO_DEPTH instead of toggling GL_DEPTH_TEST.
+        fun emit(renderType: RenderType, alpha: Float) {
+            val buf = immediate.getBuffer(renderType)
             val pose = matrices.last()
             val pts = arrayOf(
                 Pair(cx - h, cz - h),
@@ -455,13 +456,13 @@ object PearlWaypoints {
                 val (x1, z1) = pts[i + 1]
                 val dx = x1 - x0; val dz = z1 - z0
                 val len = sqrt((dx * dx + dz * dz).toDouble()).toFloat().coerceAtLeast(1e-4f)
-                buf.addVertex(pose, x0, cy, z0).setColor(r, g, b, alpha).setNormal(pose, dx / len, 0f, dz / len)
-                buf.addVertex(pose, x1, cy, z1).setColor(r, g, b, alpha).setNormal(pose, dx / len, 0f, dz / len)
+                buf.addVertex(pose, x0, cy, z0).setColor(r, g, b, alpha).setNormal(pose, dx / len, 0f, dz / len).setLineWidth(2.0f)
+                buf.addVertex(pose, x1, cy, z1).setColor(r, g, b, alpha).setNormal(pose, dx / len, 0f, dz / len).setLineWidth(2.0f)
             }
-            immediate.endBatch(org.kyowa.familyaddons.features.FamilyRenderTypes.LINES)
+            immediate.endBatch(renderType)
         }
-        emit(a)
-        GL11.glDisable(GL11.GL_DEPTH_TEST); emit(a * 0.3f); GL11.glEnable(GL11.GL_DEPTH_TEST)
+        emit(FamilyRenderTypes.LINES, a)
+        emit(FamilyRenderTypes.LINES_NO_DEPTH, a * 0.3f)
     }
 
     private fun drawHorizontalCircle(
@@ -474,8 +475,8 @@ object PearlWaypoints {
         val r = color[0]; val g = color[1]; val b = color[2]; val a = color[3]
         val cx = center.x.toFloat(); val cy = center.y.toFloat(); val cz = center.z.toFloat()
         val segments = 32
-        fun emit(alpha: Float) {
-            val buf = immediate.getBuffer(org.kyowa.familyaddons.features.FamilyRenderTypes.LINES)
+        fun emit(renderType: RenderType, alpha: Float) {
+            val buf = immediate.getBuffer(renderType)
             val pose = matrices.last()
             val twoPi = (Math.PI * 2.0).toFloat()
             var prevX = (cx + radius).toFloat()
@@ -486,14 +487,14 @@ object PearlWaypoints {
                 val nz = (cz + radius * Math.sin(angle.toDouble())).toFloat()
                 val dx = nx - prevX; val dz = nz - prevZ
                 val len = sqrt((dx * dx + dz * dz).toDouble()).toFloat().coerceAtLeast(1e-4f)
-                buf.addVertex(pose, prevX, cy, prevZ).setColor(r, g, b, alpha).setNormal(pose, dx / len, 0f, dz / len)
-                buf.addVertex(pose, nx, cy, nz).setColor(r, g, b, alpha).setNormal(pose, dx / len, 0f, dz / len)
+                buf.addVertex(pose, prevX, cy, prevZ).setColor(r, g, b, alpha).setNormal(pose, dx / len, 0f, dz / len).setLineWidth(2.0f)
+                buf.addVertex(pose, nx, cy, nz).setColor(r, g, b, alpha).setNormal(pose, dx / len, 0f, dz / len).setLineWidth(2.0f)
                 prevX = nx; prevZ = nz
             }
-            immediate.endBatch(org.kyowa.familyaddons.features.FamilyRenderTypes.LINES)
+            immediate.endBatch(renderType)
         }
-        emit(a)
-        GL11.glDisable(GL11.GL_DEPTH_TEST); emit(a * 0.3f); GL11.glEnable(GL11.GL_DEPTH_TEST)
+        emit(FamilyRenderTypes.LINES, a)
+        emit(FamilyRenderTypes.LINES_NO_DEPTH, a * 0.3f)
     }
 
     private fun drawLabel(
