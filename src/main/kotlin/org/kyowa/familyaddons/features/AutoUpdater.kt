@@ -1,6 +1,7 @@
 package org.kyowa.familyaddons.features
 
 import com.google.gson.JsonParser
+import org.kyowa.familyaddons.util.FaChat
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
@@ -168,14 +169,14 @@ object AutoUpdater {
         val mc = Minecraft.getInstance()
         val player = mc.player
         if (checking) {
-            player?.sendSystemMessage(Component.literal("§6[FA] §7Already checking for updates…"))
+            player?.sendSystemMessage(FaChat.prefixed("§7Already checking for updates…"))
             return
         }
         if (downloading) {
-            player?.sendSystemMessage(Component.literal("§6[FA] §7Already downloading an update…"))
+            player?.sendSystemMessage(FaChat.prefixed("§7Already downloading an update…"))
             return
         }
-        player?.sendSystemMessage(Component.literal("§6[FA] §7Checking for updates…"))
+        player?.sendSystemMessage(FaChat.prefixed("§7Checking for updates…"))
         checking = true
         CompletableFuture.runAsync {
             try {
@@ -183,8 +184,8 @@ object AutoUpdater {
                 mc.execute {
                     val p = mc.player
                     when {
-                        !ok -> p?.sendSystemMessage(Component.literal("§6[FA] §cCouldn't reach the update server — try again in a bit."))
-                        !updateAvailable -> p?.sendSystemMessage(Component.literal("§6[FA] §aYou're on the latest version (§e${FamilyAddons.VERSION}§a)."))
+                        !ok -> p?.sendSystemMessage(FaChat.prefixed("§cCouldn't reach the update server — try again in a bit."))
+                        !updateAvailable -> p?.sendSystemMessage(FaChat.prefixed("§aYou're on the latest version (§e${FamilyAddons.VERSION}§a)."))
                         downloaded -> sendDownloadedReminder()
                         else -> {
                             handledVersion = latestVersion   // don't let the periodic check double up
@@ -224,18 +225,18 @@ object AutoUpdater {
         // Announced once per version (handledVersion guards the repeat checks).
         Minecraft.getInstance().execute {
             Minecraft.getInstance().player?.sendSystemMessage(
-                Component.literal("§6[FA] §eNew update §a$version §edetected — downloading, it will be applied on your next restart.")
+                FaChat.prefixed("§eNew update §a$version §edetected — downloading, it will be applied on your next restart.")
             )
         }
         startDownload { success ->
             val player = Minecraft.getInstance().player
             if (success) {
-                player?.sendSystemMessage(Component.literal("§6[FA] §aFamilyAddons §e$version §adownloaded — restart whenever you're ready."))
+                player?.sendSystemMessage(FaChat.prefixed("§aFamilyAddons §e$version §adownloaded — restart whenever you're ready."))
             } else {
                 // Let the next periodic check retry, and the launch prompt /
                 // chat notification take over in the meantime.
                 handledVersion = null
-                player?.sendSystemMessage(Component.literal("§6[FA] §cBackground update download failed — will retry later, or run §f/faupdate§c."))
+                player?.sendSystemMessage(FaChat.prefixed("§cBackground update download failed — will retry later, or run §f/faupdate§c."))
             }
         }
     }
@@ -243,7 +244,7 @@ object AutoUpdater {
     private fun sendDownloadedReminder() {
         val player = Minecraft.getInstance().player ?: return
         val latest = latestVersion ?: return
-        player.sendSystemMessage(Component.literal("§6[FA] §aUpdate §e$latest §ais downloaded — restart Minecraft to apply it."))
+        player.sendSystemMessage(FaChat.prefixed("§aUpdate §e$latest §ais downloaded — restart Minecraft to apply it."))
     }
 
     private fun sendUpdateChatNotification() {
@@ -290,11 +291,11 @@ object AutoUpdater {
         val player = mc.player
 
         if (!updateAvailable || downloadUrl == null) {
-            player?.sendSystemMessage(Component.literal("§6[FA] §7No update available."))
+            player?.sendSystemMessage(FaChat.prefixed("§7No update available."))
             return
         }
         if (downloaded) {
-            player?.sendSystemMessage(Component.literal("§6[FA] §aAlready downloaded — restart Minecraft to apply."))
+            player?.sendSystemMessage(FaChat.prefixed("§aAlready downloaded — restart Minecraft to apply."))
             return
         }
 
@@ -313,19 +314,19 @@ object AutoUpdater {
         val player = mc.player
 
         if (downloading) {
-            player?.sendSystemMessage(Component.literal("§6[FA] §7Already downloading…"))
+            player?.sendSystemMessage(FaChat.prefixed("§7Already downloading…"))
             return
         }
 
-        player?.sendSystemMessage(Component.literal("§6[FA] §eDownloading FamilyAddons §a${latestVersion}§e…"))
+        player?.sendSystemMessage(FaChat.prefixed("§eDownloading FamilyAddons §a${latestVersion}§e…"))
 
         startDownload { success ->
             val p = Minecraft.getInstance().player ?: return@startDownload
             if (success) {
-                p.sendSystemMessage(Component.literal("§6[FA] §aDownload complete!"))
-                p.sendSystemMessage(Component.literal("§6[FA] §ePlease §lrestart Minecraft§r§e to apply the update."))
+                p.sendSystemMessage(FaChat.prefixed("§aDownload complete!"))
+                p.sendSystemMessage(FaChat.prefixed("§ePlease §lrestart Minecraft§r§e to apply the update."))
             } else {
-                p.sendSystemMessage(Component.literal("§6[FA] §cDownload failed — check logs. Try again with §f/faupdate§c."))
+                p.sendSystemMessage(FaChat.prefixed("§cDownload failed — check logs. Try again with §f/faupdate§c."))
             }
         }
     }

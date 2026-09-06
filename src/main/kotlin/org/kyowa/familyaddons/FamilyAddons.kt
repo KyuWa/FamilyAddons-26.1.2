@@ -7,8 +7,10 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.Screen
 import org.kyowa.familyaddons.commands.ParkourCommand
 import org.kyowa.familyaddons.commands.TestCommand
+import org.kyowa.familyaddons.commands.TranslateCommand
 import org.kyowa.familyaddons.config.FamilyConfigManager
 import org.kyowa.familyaddons.features.*
+import org.kyowa.familyaddons.features.translator.ChatTranslator
 import org.kyowa.familyaddons.party.PartyTracker
 import org.slf4j.LoggerFactory
 
@@ -35,6 +37,8 @@ object FamilyAddons : ClientModInitializer {
 
         // Chat
         HideMessages.register()
+        ChatTranslator.register()
+        TranslateCommand.register()
 
         // Utilities
         CmdShortcut.register()
