@@ -83,6 +83,7 @@ object AutoUpdater {
         // even with the automatic updater switched off.
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
             dispatcher.register(literal("faupdate").executes { checkNow(); 1 })
+            dispatcher.register(literal("fanotes").executes { showReleaseNotes(); 1 })
         }
 
         // Everything below is registered no matter what the toggle says at
@@ -134,6 +135,7 @@ object AutoUpdater {
         // server list. Set back to false after firing so subsequent world hops don't
         // re-trigger; reset to true on DISCONNECT so the next real reconnect fires it.
         ClientPlayConnectionEvents.JOIN.register { _, _, _ ->
+            announceUpdatedIfNeeded()
             if (!FamilyConfigManager.config.general.autoUpdaterEnabled) return@register
             if (!updateAvailable) return@register
             if (downloading) return@register  // currently downloading (title-screen Yes or background)
@@ -227,13 +229,13 @@ object AutoUpdater {
         // Announced once per version (handledVersion guards the repeat checks).
         Minecraft.getInstance().execute {
             Minecraft.getInstance().player?.sendSystemMessage(
-                FaChat.prefixed("§eNew update §a$version §edetected — downloading, it will be applied on your next restart.")
+                withNotesClick(FaChat.prefixed("§eNew update §a$version §edetected — downloading, it will be applied on your next restart. §8(click for notes)"))
             )
         }
         startDownload { success ->
             val player = Minecraft.getInstance().player
             if (success) {
-                player?.sendSystemMessage(FaChat.prefixed("§aFamilyAddons §e$version §adownloaded — restart whenever you're ready."))
+                player?.sendSystemMessage(withNotesClick(FaChat.prefixed("§aFamilyAddons §e$version §adownloaded — restart whenever you're ready. §8(click for notes)")))
             } else {
                 // Let the next periodic check retry, and the launch prompt /
                 // chat notification take over in the meantime.
@@ -243,10 +245,70 @@ object AutoUpdater {
         }
     }
 
+    // ── Release notes in chat ─────────────────────────────────────────
+
+    /** Makes any updater line open the release notes when clicked. */
+    private fun withNotesClick(line: MutableComponent): MutableComponent =
+        line.withStyle { s: Style ->
+            s.withClickEvent(ClickEvent.RunCommand("/fanotes"))
+                .withHoverEvent(HoverEvent.ShowText(FaChat.gradient("Click for release notes")))
+        }
+
+    /**
+     * /fanotes — prints the release notes of the newest known version. If no
+     * check has run yet (updater disabled, or clicked very early) it fetches
+     * first, once.
+     */
+    fun showReleaseNotes(fetched: Boolean = false) {
+        val player = Minecraft.getInstance().player ?: return
+        if (latestVersion == null && !fetched) {
+            player.sendSystemMessage(FaChat.prefixed("§7Fetching release notes…"))
+            CompletableFuture.runAsync {
+                checkForUpdate()
+                Minecraft.getInstance().execute { showReleaseNotes(fetched = true) }
+            }
+            return
+        }
+        val version = latestVersion ?: FamilyAddons.VERSION
+        val notes = releaseNotes
+        player.sendSystemMessage(FaChat.prefixed("§eFamilyAddons §a$version §7— what's new:"))
+        if (notes.isEmpty()) {
+            player.sendSystemMessage(Component.literal("   §7No release notes for this version."))
+            return
+        }
+        for (line in notes) player.sendSystemMessage(Component.literal("   §8• §f$line"))
+    }
+
+    @Volatile private var updatedAnnounced = false
+
+    /**
+     * First join after the jar changed: say what we came from and offer the
+     * notes. Runs whether or not the auto updater is enabled — the update
+     * may have been manual.
+     */
+    private fun announceUpdatedIfNeeded() {
+        if (updatedAnnounced) return
+        updatedAnnounced = true
+        val general = FamilyConfigManager.config.general
+        val previous = general.lastRunVersion
+        if (previous == FamilyAddons.VERSION) return
+        general.lastRunVersion = FamilyAddons.VERSION
+        FamilyConfigManager.save()
+        if (previous.isBlank()) return // first install: nothing to compare against
+        CompletableFuture.runAsync {
+            Thread.sleep(1500) // land after Hypixel's join spam, like the other notices
+            Minecraft.getInstance().execute {
+                Minecraft.getInstance().player?.sendSystemMessage(
+                    withNotesClick(FaChat.prefixed("§aUpdated §7from §c$previous §7to §a${FamilyAddons.VERSION} §8(click for release notes)"))
+                )
+            }
+        }
+    }
+
     private fun sendDownloadedReminder() {
         val player = Minecraft.getInstance().player ?: return
         val latest = latestVersion ?: return
-        player.sendSystemMessage(FaChat.prefixed("§aUpdate §e$latest §ais downloaded — restart Minecraft to apply it."))
+        player.sendSystemMessage(withNotesClick(FaChat.prefixed("§aUpdate §e$latest §ais downloaded — restart Minecraft to apply it. §8(click for notes)")))
     }
 
     private fun sendUpdateChatNotification() {
@@ -262,7 +324,7 @@ object AutoUpdater {
         player.sendSystemMessage(Component.literal("§6§lFamilyAddons §r§7» §eUpdate Available"))
 
         // Version line
-        player.sendSystemMessage(Component.literal("§7Version §c$current §7→ §a$latest"))
+        player.sendSystemMessage(withNotesClick(Component.literal("§7Version §c$current §7→ §a$latest §8(click for notes)")))
 
         // Clickable action line
         val click: MutableComponent = (Component.literal("§8» §b§n[Click here to update]") as MutableComponent)
