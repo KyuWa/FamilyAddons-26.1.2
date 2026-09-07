@@ -83,6 +83,7 @@ object FamilyAddons : ClientModInitializer {
         KuudraOccupancy.register()
         PileWaypoints.register()
         SupplyWaypoints.register()
+        KuudraFuelPhase.register()
         KuudraGiants.register()
         KuudraCrateWaypoints.register()
         PearlWaypoints.register()

@@ -14,6 +14,7 @@ import org.kyowa.familyaddons.features.AutoUpdater
 import org.kyowa.familyaddons.features.BestiaryZoneHighlight
 import org.kyowa.familyaddons.features.KuudraCrateWaypoints
 import org.kyowa.familyaddons.features.KuudraDirection
+import org.kyowa.familyaddons.features.KuudraFuelPhase
 import org.kyowa.familyaddons.features.PearlWaypoints
 import org.kyowa.familyaddons.features.NpcLocations
 import org.kyowa.familyaddons.features.Parkour
@@ -142,6 +143,7 @@ object TestCommand {
                         p.sendSystemMessage(Component.literal(KuudraDirection.debugDump().trimEnd()))
                         p.sendSystemMessage(Component.literal(PearlWaypoints.debugDump().trimEnd()))
                         p.sendSystemMessage(Component.literal(KuudraCrateWaypoints.debugDump().trimEnd()))
+                        p.sendSystemMessage(Component.literal(KuudraFuelPhase.debugDump().trimEnd()))
                         1
                     })
 
@@ -164,8 +166,8 @@ object TestCommand {
                                 1
                             }))
 
-                    // /fa critterdump — log nearby entities + sparkle data for tuning detection
-                    .then(literal("critterdump").requires { DevAccess.isDev() }.executes {
+                    // /fa entitydump — log nearby entities (type, size, names, gear) + sparkle data
+                    .then(literal("entitydump").requires { DevAccess.isDev() }.executes {
                         org.kyowa.familyaddons.features.SparklingCritterHighlight.dumpNearby()
                         1
                     })

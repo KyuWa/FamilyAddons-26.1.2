@@ -34,7 +34,7 @@ class HighlightConfig {
 
     @Expose @JvmField
     @ConfigOption(name = "Drawing Style", desc = "How to draw the highlight.")
-    @ConfigEditorDropdown(values = ["AABB", "Outline"])
+    @ConfigEditorDropdown(values = ["ESP Box", "Outline"])
     var drawingStyle = 0
 
     @Expose @JvmField
@@ -105,7 +105,7 @@ class HighlightConfig {
     @Expose @JvmField
     @ConfigAccordionId(id = 1)
     @ConfigOption(name = "Bestiary Drawing Style", desc = "How to draw the bestiary highlight.")
-    @ConfigEditorDropdown(values = ["AABB", "Outline"])
+    @ConfigEditorDropdown(values = ["ESP Box", "Outline"])
     var bestiaryDrawingStyle = 0
 
     @Expose @JvmField

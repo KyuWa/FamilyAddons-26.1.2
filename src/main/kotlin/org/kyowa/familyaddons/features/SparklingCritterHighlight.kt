@@ -28,7 +28,7 @@ import org.kyowa.familyaddons.config.FamilyConfigManager
  *     particles at the critter — an entity with repeated sparkle bursts
  *     right on top of it within the last few seconds is marked.
  *
- * /fa critterdump logs nearby entities + their particle counts so the
+ * /fa entitydump logs nearby entities + their particle counts so the
  * heuristics can be tuned against the real thing.
  */
 object SparklingCritterHighlight {
@@ -159,13 +159,13 @@ object SparklingCritterHighlight {
         matrices.popPose()
     }
 
-    /** /fa critterdump — log nearby entities + sparkle data for tuning. */
+    /** /fa entitydump — log nearby entities (type, size, names, gear) + sparkle data. */
     fun dumpNearby() {
         val mc = Minecraft.getInstance()
         val player = mc.player ?: return
         val level = mc.level ?: return
         val now = System.currentTimeMillis()
-        val sb = StringBuilder("==== Critter dump @ ${java.time.LocalDateTime.now()} ====\n")
+        val sb = StringBuilder("==== Entity dump @ ${java.time.LocalDateTime.now()} ====\n")
         var count = 0
         for (e in level.entitiesForRendering()) {
             if (e === player || !e.isAlive) continue
@@ -185,10 +185,10 @@ object SparklingCritterHighlight {
         }
         sb.append("total: $count entities within 8 blocks\n\n")
         try {
-            val file = java.io.File(mc.gameDirectory, "config/familyaddons/critter_dump.txt")
+            val file = java.io.File(mc.gameDirectory, "config/familyaddons/entity_dump.txt")
             file.parentFile.mkdirs()
             file.appendText(sb.toString())
-            player.sendSystemMessage(FaChat.prefixed("§a$count entities dumped §7→ §fconfig/familyaddons/critter_dump.txt"))
+            player.sendSystemMessage(FaChat.prefixed("§a$count entities dumped §7→ §fconfig/familyaddons/entity_dump.txt"))
         } catch (e: Exception) {
             player.sendSystemMessage(FaChat.prefixed("§cDump failed: ${e.message}"))
         }
