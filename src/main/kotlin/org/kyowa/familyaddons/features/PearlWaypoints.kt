@@ -513,6 +513,7 @@ object PearlWaypoints {
      *  1 Box Outline  - wireframe cube only
      *  2 Flat Square  - translucent horizontal square + outline at the aim height
      *  3 Flat Circle  - translucent horizontal disc + outline at the aim height
+     *  4 Dot          - solid camera-facing dot at the exact aim point
      * Every shape is drawn depth-tested, then again faintly through walls.
      */
     internal fun drawWaypoint(
@@ -622,16 +623,14 @@ object PearlWaypoints {
     }
 
     /**
-     * "Target": a ring facing the camera around the aim point (the tolerance:
-     * throws inside it usually land, not always) with a solid dot at the exact
-     * aim point (the perfect throw). Both sizes come from the config.
+     * "Dot": a solid camera-facing disc at the exact aim point, drawn through
+     * walls so the spot is never hidden. Size from the config.
      */
     private fun drawTarget(
         matrices: PoseStack, immediate: MultiBufferSource.BufferSource,
         pos: Vec3, color: FloatArray,
     ) {
         val cfg = FamilyConfigManager.config.kuudra
-        val ringR = cfg.pearlTargetRingRadius.toDouble().coerceIn(0.05, 5.0)
         val dotR = cfg.pearlTargetDotRadius.toDouble().coerceIn(0.01, 2.0)
         val r = color[0]; val g = color[1]; val b = color[2]; val a = color[3]
 
@@ -651,23 +650,6 @@ object PearlWaypoints {
 
         val pose = matrices.last()
         val m = pose.pose()
-
-        // Outer ring: outline, depth-tested then faint through walls.
-        val outer = ring(ringR, 48)
-        fun ringLines(renderType: RenderType, alpha: Float) {
-            val buf = immediate.getBuffer(renderType)
-            for (i in 0 until outer.size - 1) {
-                val p0 = outer[i]; val p1 = outer[i + 1]
-                val d = p1.subtract(p0).normalize()
-                buf.addVertex(pose, p0.x.toFloat(), p0.y.toFloat(), p0.z.toFloat()).setColor(r, g, b, alpha)
-                    .setNormal(pose, d.x.toFloat(), d.y.toFloat(), d.z.toFloat()).setLineWidth(2.5f)
-                buf.addVertex(pose, p1.x.toFloat(), p1.y.toFloat(), p1.z.toFloat()).setColor(r, g, b, alpha)
-                    .setNormal(pose, d.x.toFloat(), d.y.toFloat(), d.z.toFloat()).setLineWidth(2.5f)
-            }
-            immediate.endBatch(renderType)
-        }
-        ringLines(FamilyRenderTypes.LINES, a)
-        ringLines(FamilyRenderTypes.LINES_NO_DEPTH, a * 0.3f)
 
         // Centre dot: solid filled disc (fan of quads, both windings), drawn
         // through walls too so the exact spot is never hidden.

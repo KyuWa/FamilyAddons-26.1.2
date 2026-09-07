@@ -263,6 +263,11 @@ object PearlTimer {
                         // The server marks pearls dead the instant they collide
                         // with anything (block, mob, player) — so this is exact.
                         val ent = world?.getEntity(entry.boundEntityId)
+                        // Debug: trace the server-driven pearl path so the
+                        // real gravity/drag can be fitted (dev + Debug Messages).
+                        if (ent != null && org.kyowa.familyaddons.util.DevAccess.debug()) {
+                            FamilyAddons.LOGGER.info("PearlTrace: pearl ${entry.id} t=${entry.ticksSinceThrow} pos=${"%.3f".format(ent.x)},${"%.3f".format(ent.y)},${"%.3f".format(ent.z)} vel=${"%.4f".format(ent.deltaMovement.x)},${"%.4f".format(ent.deltaMovement.y)},${"%.4f".format(ent.deltaMovement.z)}")
+                        }
                         if (ent == null || !ent.isAlive) {
                             entry.remainingTicks = 0
                             entry.state = State.LANDED
