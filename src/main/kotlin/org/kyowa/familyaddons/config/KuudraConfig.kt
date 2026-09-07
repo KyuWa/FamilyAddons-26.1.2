@@ -174,6 +174,30 @@ class KuudraConfig {
     @ConfigEditorColour
     var stunWaypointColor = "0:255:85:255:255"
 
+    // ── Kuudra Highlight accordion (id=8) ─────────────────────
+    @Expose @JvmField
+    @ConfigOption(name = "Kuudra Highlight", desc = "")
+    @ConfigEditorAccordion(id = 8)
+    var kuudraHighlightAccordion = false
+
+    @Expose @JvmField
+    @ConfigAccordionId(id = 8)
+    @ConfigOption(name = "Enable Kuudra Highlight", desc = "Outline Kuudra (the giant magma cube) so you can see him through walls and lava.")
+    @ConfigEditorBoolean
+    var kuudraHighlightEnabled = false
+
+    @Expose @JvmField
+    @ConfigAccordionId(id = 8)
+    @ConfigOption(name = "Behind Walls", desc = "Show the outline through walls. Off = only outline Kuudra when you have line of sight.")
+    @ConfigEditorBoolean
+    var kuudraHighlightBehindWalls = true
+
+    @Expose @JvmField
+    @ConfigAccordionId(id = 8)
+    @ConfigOption(name = "Outline Color", desc = "Outline color for Kuudra.")
+    @ConfigEditorColour
+    var kuudraHighlightColor = "0:255:255:85:85"
+
     // ── Gorilla Tactics Timer accordion (id=50) ───────────────
     @Expose @JvmField
     @ConfigOption(name = "Gorilla Tactics Timer", desc = "")

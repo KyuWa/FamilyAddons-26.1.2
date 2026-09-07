@@ -117,6 +117,15 @@ object PearlWaypoints {
             true
         }
 
+        // The grab progress bar advances on SERVER ticks, so the throw-window
+        // countdown has to count the same clock. Hypixel's per-tick ping packet
+        // (ServerTickTracker) stops arriving while the server lags, which
+        // pauses the countdown exactly like the grab bar pauses — a client
+        // tick counter kept running at 20 Hz and called "NOW" too early.
+        ServerTickTracker.onTick {
+            if (grabbing) tickCount++
+        }
+
         ClientTickEvents.END_CLIENT_TICK.register { client ->
             Prio.useNewPrio = FamilyConfigManager.config.kuudra.pearlNewPrio
 
@@ -124,8 +133,6 @@ object PearlWaypoints {
                 if (grabbing) clearGrab()
                 if (MissingSupplies.missing.isNotEmpty()) MissingSupplies.clear()
             }
-
-            if (grabbing) tickCount++
 
             // Check NOW sound trigger every tick during a grab.
             if (grabbing && !nowSoundPlayed) {
