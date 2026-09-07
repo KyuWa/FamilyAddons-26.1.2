@@ -1,0 +1,14 @@
+# FamilyAddons presence worker (who is running the mod). Separate config file
+# because this folder also holds the translator worker's wrangler.toml.
+#
+#   cd worker
+#   npx wrangler secret put FA_SECRET -c presence.wrangler.toml   (= KeyFetcher.SECRET_TOKEN)
+#   npx wrangler secret put ADMIN_KEY -c presence.wrangler.toml   (owner-only read key)
+#   npx wrangler deploy -c presence.wrangler.toml
+name = "fa-presence"
+main = "presence-worker.js"
+compatibility_date = "2026-09-01"
+
+[[kv_namespaces]]
+binding = "PRESENCE"
+id = "8305c5252978407499c57c040a996e9d"

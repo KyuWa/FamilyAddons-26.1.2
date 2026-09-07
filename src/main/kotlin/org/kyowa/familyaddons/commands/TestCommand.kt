@@ -16,6 +16,7 @@ import org.kyowa.familyaddons.features.KuudraCrateWaypoints
 import org.kyowa.familyaddons.features.KuudraDirection
 import org.kyowa.familyaddons.features.KuudraFuelPhase
 import org.kyowa.familyaddons.features.PearlWaypoints
+import org.kyowa.familyaddons.features.UsageHeartbeat
 import org.kyowa.familyaddons.features.NpcLocations
 import org.kyowa.familyaddons.features.Parkour
 import org.kyowa.familyaddons.features.PartyRepCheck
@@ -136,6 +137,10 @@ object TestCommand {
                             }))
 
                     // ── Dev-only dumps (DevAccess: hidden + rejected for everyone else) ──
+
+                    // /fa users | /fa online — who runs the mod (presence worker)
+                    .then(literal("users").requires { DevAccess.isDev() }.executes { UsageHeartbeat.showUsers(false); 1 })
+                    .then(literal("online").requires { DevAccess.isDev() }.executes { UsageHeartbeat.showUsers(true); 1 })
 
                     // /fa kuudra — dump Kuudra feature state (direction, pearls, crates)
                     .then(literal("kuudra").requires { DevAccess.isDev() }.executes { ctx ->
