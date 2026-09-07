@@ -173,6 +173,8 @@ object SparklingCritterHighlight {
             count++
             sb.append("${e.javaClass.simpleName} id=${e.id} @ ${"%.1f".format(e.x)},${"%.1f".format(e.y)},${"%.1f".format(e.z)}\n")
             sb.append("  name=${e.name.string} custom=${e.customName?.string} invisible=${e.isInvisible}\n")
+            // Type key + bounding box: what custom_bestiary.json entityType/minWidth/maxWidth match on.
+            sb.append("  type=${net.minecraft.world.entity.EntityType.getKey(e.type).path} width=${"%.2f".format(e.bbWidth)} height=${"%.2f".format(e.bbHeight)}\n")
             if (e is LivingEntity) {
                 for (slot in EquipmentSlot.entries) {
                     val stack = try { e.getItemBySlot(slot) } catch (ex: Exception) { continue }
