@@ -15,6 +15,7 @@
     "ServerTickPacketMixin",
     "PlayerPositionPacketMixin",
     "ParticlePacketMixin",
+    "MobEffectPacketMixin",
     "CameraMixin",
     "FreelookEntityMixin",
     "PearlInGameHudMixin"
