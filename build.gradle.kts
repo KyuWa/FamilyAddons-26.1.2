@@ -22,6 +22,7 @@ repositories {
     maven("https://maven.terraformersmc.com/releases/")
     maven("https://jitpack.io")
     maven { url = uri("https://maven.notenoughupdates.org/releases/") }
+    maven("https://repo.hypixel.net/repository/Hypixel/")
 }
 
 dependencies {
@@ -34,6 +35,11 @@ dependencies {
     implementation("net.fabricmc:fabric-loader:0.19.3")
     implementation("net.fabricmc.fabric-api:fabric-api:0.153.0+26.1.2")
     implementation("net.fabricmc:fabric-language-kotlin:1.13.9+kotlin.2.3.10")
+    // Shipped by Minecraft itself (see the launcher's version manifest), so compile-only.
+    // Optional at runtime: only used when the hypixel-mod-api mod is installed (see HypixelApiBridge).
+    compileOnly("net.hypixel:mod-api:1.0.2")
+    compileOnly("net.java.dev.jna:jna:5.17.0")
+    compileOnly("net.java.dev.jna:jna-platform:5.17.0")
     compileOnly("com.terraformersmc:modmenu:20.0.0-beta.4")
     implementation("org.notenoughupdates.moulconfig:modern-26.1:4.7.2")
     include("org.notenoughupdates.moulconfig:modern-26.1:4.7.2")

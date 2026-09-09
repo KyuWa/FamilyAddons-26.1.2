@@ -1,0 +1,10 @@
+# FamilyAddons key worker (Hypixel API proxy), served at key.kyowa.uk
+# (custom domain is attached to the script name on Cloudflare).
+#
+#   cd worker
+#   npx wrangler secret put HYPIXEL_API_KEY -c key.wrangler.toml
+#   npx wrangler secret put FA_SECRET       -c key.wrangler.toml   (= KeyFetcher.SECRET_TOKEN)
+#   npx wrangler deploy -c key.wrangler.toml
+name = "key-kyowa-uk"
+main = "key-worker.js"
+compatibility_date = "2026-09-01"
