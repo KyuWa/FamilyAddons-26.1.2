@@ -11,6 +11,7 @@
     "EntityOutlineMixin",
     "BuildPileNametagMixin",
     "NameStyleTabMixin",
+    "NameStyleTabOverlayMixin",
     "NameStyleNametagMixin",
     "NameStyleFontMixin",
     "EntityCaptureMixin",
