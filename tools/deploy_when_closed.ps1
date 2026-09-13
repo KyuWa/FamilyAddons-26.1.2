@@ -1,12 +1,22 @@
+# Waits for Minecraft to exit, then replaces the FamilyAddons jar in each Modrinth profile
+# with the freshly built -dev jar. Paths are per-machine: edit $profiles if a profile is renamed.
 $log = "$PSScriptRoot\deploy_when_closed.log"
 "waiting for game to close: $(Get-Date)" | Out-File $log -Encoding utf8
 while (Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'net\.minecraft\.client\.main\.Main' }) { Start-Sleep -Seconds 5 }
 Start-Sleep -Seconds 3
-$m1 = "C:\Users\hkarb\AppData\Roaming\ModrinthApp\profiles\26.1.2 Fabric\mods"
-Get-ChildItem $m1 | Where-Object { ($_.Name -like 'FamilyAddons*.jar' -and $_.Name -ne 'FamilyAddons-26.1.2-dev.jar') -or $_.Name -eq 'fa_update_cleanup.bat' } | Remove-Item -Force
-Copy-Item -Force "C:\Users\hkarb\code\FamilyAddons-26.1.2\build\libs\FamilyAddons-26.1.2-dev.jar" $m1
-$m2 = "C:\Users\hkarb\AppData\Roaming\ModrinthApp\profiles\26.2\mods"
-Get-ChildItem $m2 | Where-Object { ($_.Name -like 'FamilyAddons*.jar' -and $_.Name -ne 'FamilyAddons-26.2-dev.jar') -or $_.Name -eq 'fa_update_cleanup.bat' } | Remove-Item -Force
-Copy-Item -Force "C:\Users\hkarb\code\FamilyAddons-26.2\build\libs\FamilyAddons-26.2-dev.jar" $m2
-"copied: $(Get-Date)" | Out-File $log -Append -Encoding utf8
-Get-ChildItem $m1, $m2 -Filter 'FamilyAddons*' | Select-Object Name, Length, LastWriteTime | Out-String | Out-File $log -Append -Encoding utf8
+
+$code = "$env:USERPROFILE\code"
+$profiles = @{
+    "26.1.2" = "$env:APPDATA\ModrinthApp\profiles\26.1.2 Fabric 1.0.0 (1)\mods"
+    "26.2"   = "$env:APPDATA\ModrinthApp\profiles\26.2\mods"
+}
+foreach ($mc in $profiles.Keys) {
+    $mods = $profiles[$mc]
+    $jar = "$code\FamilyAddons-$mc\build\libs\FamilyAddons-$mc-dev.jar"
+    if (-not (Test-Path $mods)) { "skip $mc: no profile at $mods" | Out-File $log -Append -Encoding utf8; continue }
+    if (-not (Test-Path $jar))  { "skip $mc: no build at $jar"    | Out-File $log -Append -Encoding utf8; continue }
+    Get-ChildItem $mods | Where-Object { ($_.Name -like 'FamilyAddons*.jar' -and $_.Name -ne "FamilyAddons-$mc-dev.jar") -or $_.Name -eq 'fa_update_cleanup.bat' } | Remove-Item -Force
+    Copy-Item -Force $jar $mods
+    "copied $mc: $(Get-Date)" | Out-File $log -Append -Encoding utf8
+    Get-ChildItem $mods -Filter 'FamilyAddons*' | Select-Object Name, Length, LastWriteTime | Out-String | Out-File $log -Append -Encoding utf8
+}
