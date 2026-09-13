@@ -14,6 +14,7 @@
     "NameStyleTabOverlayMixin",
     "NameStyleNametagMixin",
     "NameStyleFontMixin",
+    "SbaTabListCompatMixin",
     "EntityCaptureMixin",
     "PlayerDisguiseMixin",
     "HotbarScrollMixin",
