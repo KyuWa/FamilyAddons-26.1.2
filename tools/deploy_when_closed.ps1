@@ -8,7 +8,7 @@ Start-Sleep -Seconds 3
 $code = "$env:USERPROFILE\code"
 $profiles = @{
     "26.1.2" = "$env:APPDATA\ModrinthApp\profiles\26.1.2 Fabric 1.0.0 (1)\mods"
-    "26.2"   = "$env:APPDATA\ModrinthApp\profiles\26.2\mods"
+    "26.2"   = "$env:APPDATA\ModrinthApp\profiles\Fabric 26.2\mods"
 }
 foreach ($mc in $profiles.Keys) {
     $mods = $profiles[$mc]
