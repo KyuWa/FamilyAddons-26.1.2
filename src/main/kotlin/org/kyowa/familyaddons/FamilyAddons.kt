@@ -104,6 +104,7 @@ object FamilyAddons : ClientModInitializer {
         DevTools.register()
         DiscordTickets.register()
         HelixWaypoints.register()
+        org.kyowa.familyaddons.features.safari.SafariTracker.register()
         NameStyle.register()
         NameSync.register()
 
