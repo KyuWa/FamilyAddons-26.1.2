@@ -16,6 +16,7 @@
     "NameStyleFontMixin",
     "SbaTabListCompatMixin",
     "SkyHanniTabLineCompatMixin",
+    "ChatScreenClickMixin",
     "EntityCaptureMixin",
     "PlayerDisguiseMixin",
     "HotbarScrollMixin",
