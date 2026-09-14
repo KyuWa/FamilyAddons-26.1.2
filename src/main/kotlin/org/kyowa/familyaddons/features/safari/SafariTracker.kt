@@ -72,7 +72,8 @@ object SafariTracker {
     // ── parsing ───────────────────────────────────────────────────────────
 
     private fun onChat(plain: String) {
-        if (!FamilyConfigManager.config.safari.enabled) return
+        val s = FamilyConfigManager.config.safari
+        if (!s.enabled || !s.tracker) return
         if (plain.isEmpty() || PLAYER_SAID.matches(plain)) return
 
         ENTERED.find(plain)?.let { m ->
@@ -203,7 +204,7 @@ object SafariTracker {
 
     private fun renderHud(ctx: GuiGraphicsExtractor) {
         val cfg = FamilyConfigManager.config.safari
-        if (!cfg.enabled || !cfg.trackerHud) return
+        if (!cfg.enabled || !cfg.tracker || !cfg.trackerHud) return
         if (caught.isEmpty()) return
         if (cfg.onlyInSafari && !inSafari()) return
 
