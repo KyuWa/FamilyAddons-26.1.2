@@ -69,6 +69,7 @@ public class WorldRendererMixin {
                 !ShulkerBoxHighlight.INSTANCE.hasBoxes() &&
                 !SparklingCritterHighlight.INSTANCE.hasTargets() &&
                 !FloorDropHighlight.INSTANCE.hasTargets() &&
+                !org.kyowa.familyaddons.features.safari.BeeSpotHighlight.INSTANCE.hasTargets() &&
                 !DungeonHighlight.INSTANCE.hasRender() &&
                 !PearlWaypoints.INSTANCE.hasWaypoints() &&
                 !PileWaypoints.INSTANCE.hasBeams() &&
@@ -96,6 +97,7 @@ public class WorldRendererMixin {
         ShulkerBoxHighlight.INSTANCE.onWorldRender(fa_matrices, camera);
         SparklingCritterHighlight.INSTANCE.onWorldRender(fa_matrices, camera);
         FloorDropHighlight.INSTANCE.onWorldRender(fa_matrices, camera);
+        org.kyowa.familyaddons.features.safari.BeeSpotHighlight.INSTANCE.onWorldRender(fa_matrices, camera);
         DungeonHighlight.INSTANCE.onWorldRender(fa_matrices, camera);
         PearlWaypoints.INSTANCE.onWorldRender(fa_matrices, camera);
         PileWaypoints.INSTANCE.onWorldRender(fa_matrices, camera);

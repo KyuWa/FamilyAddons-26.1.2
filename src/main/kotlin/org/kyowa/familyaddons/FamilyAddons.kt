@@ -106,6 +106,7 @@ object FamilyAddons : ClientModInitializer {
         HelixWaypoints.register()
         org.kyowa.familyaddons.features.safari.SafariTracker.register()
         org.kyowa.familyaddons.features.safari.HideyhoQuickAccept.register()
+        org.kyowa.familyaddons.features.safari.BeeSpotHighlight.register()
         NameStyle.register()
         NameSync.register()
 
