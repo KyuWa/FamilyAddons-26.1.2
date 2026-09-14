@@ -6,8 +6,8 @@
     "Top-level keys are zone keys (safari, crimson_isle, catacombs, ...); keys starting with _ are ignored.",
     "Per mob: name (required, exact in-game name); for mobs WITHOUT a readable nametag add",
     "entityType (vanilla id, e.g. bat), optional minWidth/maxWidth (bounding box), optional variants",
-    "(shulker colours / tropical fish patterns), optional headItem (item id worn on the head, e.g. player_head).",
     "Get those values in game with /fa entitydump while standing next to the mob.",
+    "optional needsLabel (true = also require a name stand carrying the mob's name within a few blocks; tells a Gazer from a fairy soul).",
     "A remote entry with the same name as a NEU repo mob replaces it; the user's own custom_bestiary.json",
     "still overrides this file. Push to master and clients pick it up within 10 minutes."
   ],
